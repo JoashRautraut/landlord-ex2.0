@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in</title>
+    <title>Office Sign in</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-page">
@@ -21,8 +21,8 @@
     </div>
     <div class="centered-wrapper">
     <div class="signup-container" role="region" aria-labelledby="signin-heading">
-        <h1 id="signin-heading">Sign in</h1>
-        <p class="page-intro">Use your assigned account to access the system.</p>
+        <h1 id="signin-heading">Office sign in</h1>
+        <p class="page-intro">Use your office account to access this portal.</p>
         <div id="form-error" class="form-error" role="alert" aria-live="polite" hidden></div>
         <form id="loginForm" onsubmit="redirectHome(event)" novalidate>
             <div class="form-group">
@@ -99,7 +99,7 @@
                 }
 
                 const role = String(user.role || '').toLowerCase();
-                if (role === 'admin' || role === 'office') {
+                if (role === 'office') {
                     window.location.href = 'home.html#map';
                     return;
                 }
@@ -108,7 +108,7 @@
                     return;
                 }
 
-                throw new Error('Your account is not permitted to log in here.');
+                throw new Error('This portal is for office accounts only.');
             } catch (e) {
                 errorEl.textContent = e?.message || 'Login failed. Please try again.';
                 errorEl.hidden = false;

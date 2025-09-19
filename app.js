@@ -266,6 +266,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let leafletMap = null;
 
+// Global Manolo Fortich bounds - use this consistently throughout the app
+const MANOLO_FORTICH_BOUNDS = L.latLngBounds(
+  [8.0000, 124.5000], // southwest corner
+  [8.7000, 125.3000]  // northeast corner
+);
+
+// Global function to force map back to Manolo Fortich bounds
+window.forceMapToManoloFortich = function() {
+  if (window.leafletMap) {
+    window.leafletMap.setMaxBounds(MANOLO_FORTICH_BOUNDS);
+    window.leafletMap.fitBounds(MANOLO_FORTICH_BOUNDS);
+    window.leafletMap.setView([8.35, 124.9], 12);
+  }
+};
+
 function initMap() {
   const mapContainer = document.getElementById('mapid');
   if (!mapContainer) return;
@@ -279,8 +294,27 @@ function initMap() {
   }
   mapContainer.innerHTML = '';
 
-  var map = L.map('mapid');
+  // Use global Manolo Fortich bounds
+
+  // Initialize map with Manolo Fortich center and appropriate zoom
+  var map = L.map('mapid', {
+    center: [8.35, 124.9], // Center of Manolo Fortich
+    zoom: 9, // zoomed out to show more area
+    maxBounds: MANOLO_FORTICH_BOUNDS,
+    maxBoundsViscosity: 0.01, // very flexible bounds
+    minZoom: 5, // allow more zoom out
+    maxZoom: 20,
+    worldCopyJump: false, // Prevent world wrapping
+    zoomControl: true
+  });
   window.leafletMap = map;
+
+  // Force the map to stay within bounds immediately
+  map.setMaxBounds(MANOLO_FORTICH_BOUNDS);
+  map.fitBounds(MANOLO_FORTICH_BOUNDS);
+  
+  // Allow flexible map movement within the larger bounds
+  // Removed strict bounds enforcement to allow better navigation
 
   // TEST: Add a simple map click popup to verify popups work
   // REMOVE this after debugging so only land area clicks show popups
@@ -354,23 +388,65 @@ function initMap() {
     }
   });
 
-  // Restrict map to Manolo Fortich, Bukidnon bounds
-  // Approximate bounding box: [south, west, north, east]
-  const MANOLO_FORTICH_BOUNDS = L.latLngBounds(
-    [8.2500, 124.7500], // southwest
-    [8.4500, 125.0500]  // northeast
-  );
-  map.setMaxBounds(MANOLO_FORTICH_BOUNDS);
-  map.fitBounds(MANOLO_FORTICH_BOUNDS);
-  map.options.minZoom = 11; // prevent zooming out too far
-  map.on('drag', function() { map.panInsideBounds(MANOLO_FORTICH_BOUNDS, { animate: false }); });
-  // HD Satellite base layer (Esri World Imagery)
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    {
-      attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, GIS User Community'
+  // Strict bounds enforcement for Manolo Fortich only
+  map.on('drag', function() { 
+    map.panInsideBounds(MANOLO_FORTICH_BOUNDS, { animate: false }); 
+  });
+  
+  // Prevent zooming out beyond bounds
+  map.on('zoomend', function() {
+    if (!MANOLO_FORTICH_BOUNDS.contains(map.getBounds())) {
+      map.fitBounds(MANOLO_FORTICH_BOUNDS);
     }
-  ).addTo(map);
+  });
+  
+  // Additional enforcement on moveend
+  map.on('moveend', function() {
+    if (!MANOLO_FORTICH_BOUNDS.contains(map.getBounds())) {
+      map.fitBounds(MANOLO_FORTICH_BOUNDS);
+    }
+  });
+  
+  // Force bounds after map is ready and continuously enforce
+  setTimeout(() => {
+    map.setMaxBounds(MANOLO_FORTICH_BOUNDS);
+    map.fitBounds(MANOLO_FORTICH_BOUNDS);
+    
+    // Continuous bounds enforcement
+    const enforceBounds = () => {
+      if (window.leafletMap && !MANOLO_FORTICH_BOUNDS.contains(window.leafletMap.getBounds())) {
+        window.leafletMap.setMaxBounds(MANOLO_FORTICH_BOUNDS);
+        window.leafletMap.fitBounds(MANOLO_FORTICH_BOUNDS);
+      }
+    };
+    
+    // Enforce bounds every 500ms
+    setInterval(enforceBounds, 500);
+    
+  // Also enforce on any map interaction
+  map.on('viewreset', enforceBounds);
+  map.on('load', enforceBounds);
+  
+  // Add keyboard shortcut to force bounds (Ctrl+M)
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'm') {
+      e.preventDefault();
+      window.forceMapToManoloFortich();
+    }
+  });
+  }, 100);
+  // Google Satellite base layer
+  L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    attribution: 'Tiles © Google — Source: Google Earth',
+    maxZoom: 20
+  }).addTo(map);
+
+  // Google Hybrid layer for labels (roads, landmarks, place names)
+  L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+    attribution: 'Labels © Google',
+    opacity: 0.8,
+    pane: 'overlayPane'
+  }).addTo(map);
   // Draw land areas from the database
   drawLandAreas(map);
 }
@@ -572,6 +648,15 @@ window.navigateTo = function(sectionId) {
     void mapMain.offsetWidth;
     requestAnimationFrame(() => {
       initMap();
+      // Ensure bounds are enforced after map initialization
+      setTimeout(() => {
+        window.forceMapToManoloFortich();
+      }, 200);
+      
+      // Also enforce after a longer delay to catch any late initialization
+      setTimeout(() => {
+        window.forceMapToManoloFortich();
+      }, 1000);
     });
   }
 };
@@ -651,13 +736,52 @@ async function fetchAndRenderLandAreas() {
     // Panel not in DOM (e.g., not on map screen); bail quietly
     return;
   }
-  countEl.textContent = `Land Areas: ${landAreas.length}`;
+  countEl.textContent = `Land Holdings: ${landAreas.length}`;
   list.innerHTML = '';
   landAreas.forEach((area, idx) => {
     // Prefer name from land_areas when available
     const ownerName = (area.lo_name && String(area.lo_name).trim()) || `Land ${idx + 1}`;
+    const landStatus = area.land_status || 'workable';
+    const statusIcon = landStatus === 'problematic' ? '⚠️' : '✅';
+    const statusText = landStatus === 'problematic' ? 'Problematic' : 'Workable';
+    
     const li = document.createElement('li');
-    li.textContent = ownerName;
+    li.style.cssText = `
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      background: white;
+      border: 1px solid var(--neutral-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      list-style: none;
+    `;
+    
+    li.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="flex: 1;">
+          <div style="font-weight: 600; color: var(--neutral-800); margin-bottom: 0.25rem;">${ownerName}</div>
+          <div style="font-size: 0.75rem; color: var(--neutral-500);">${area.barangay_name || 'No barangay specified'}</div>
+        </div>
+        <div class="${landStatus === 'problematic' ? 'status-problematic' : 'status-workable'}">
+          ${statusIcon} ${statusText}
+        </div>
+      </div>
+    `;
+    
+    // Add hover effect
+    li.addEventListener('mouseenter', () => {
+      li.style.transform = 'translateY(-1px)';
+      li.style.boxShadow = 'var(--shadow-md)';
+      li.style.borderColor = 'var(--primary)';
+    });
+    
+    li.addEventListener('mouseleave', () => {
+      li.style.transform = 'translateY(0)';
+      li.style.boxShadow = 'var(--shadow-sm)';
+      li.style.borderColor = 'var(--neutral-200)';
+    });
     li.onclick = function() {
       if (window.zoomToLandArea) {
         window.zoomToLandArea(area);
@@ -1690,11 +1814,37 @@ async function showOwnerProfilePopup(area, coords, map, latlng) {
   cardHtml += `<div><b>Status Description:</b></div><div>${fieldOrNA(area.current_status_desc)}</div>`;
   cardHtml += `<div><b>Problem Category:</b></div><div>${fieldOrNA(area.problem_category)}</div>`;
   cardHtml += `<div><b>Sub Category:</b></div><div>${fieldOrNA(area.sub_category)}</div>`;
+  const landStatus = area.land_status || 'workable';
+  const statusIcon = landStatus === 'problematic' ? '⚠️' : '✅';
+  const statusClass = landStatus === 'problematic' ? 'status-problematic' : 'status-workable';
+  cardHtml += `<div><b>Land Status:</b></div><div class="${statusClass}">${statusIcon} ${landStatus.charAt(0).toUpperCase() + landStatus.slice(1)}</div>`;
   cardHtml += `<div><b>Remarks:</b></div><div>${fieldOrNA(area.remarks)}</div>`;
   cardHtml += `</div>`;
-  cardHtml += `<div style='display:flex;gap:8px;margin-top:12px;'>`+
-    `<button id='assign-task-${area.id}' style='background:#ffd600;color:#23272f;border:none;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;'>Survey Land</button>`+
-    `<button id='edit-land-${area.id}' style='background:#fff;color:#23272f;border:1px solid #ddd;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;'>Edit Info</button>`+
+  cardHtml += `<div style='display:flex;gap:0.75rem;margin-top:1rem;'>`+
+    `<button id='assign-task-${area.id}' style='
+      background: var(--warning);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      flex: 1;
+    ' onmouseover="this.style.background='var(--warning-hover)'" onmouseout="this.style.background='var(--warning)'">Survey Land</button>`+
+    `<button id='edit-land-${area.id}' style='
+      background: white;
+      color: var(--neutral-700);
+      border: 1px solid var(--neutral-300);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      flex: 1;
+    ' onmouseover="this.style.background='var(--neutral-50)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='white'; this.style.borderColor='var(--neutral-300)'">Edit Info</button>`+
   `</div>`;
   cardHtml += `<div style='margin-top:10px;color:#6b7280;font-size:.82em;border-top:1px solid #f0f0f0;padding-top:8px;'><span style='color:#374151;font-weight:600;'>Added by:</span> ${addedBy}${createdAt ? ` • <span style='color:#374151;font-weight:600;'>Created:</span> ${new Date(createdAt).toLocaleString()}` : ''}</div>`;
   cardHtml += `</div>`;
@@ -1769,6 +1919,7 @@ function showEditLandInfoModal(area) {
   setVal('edit-current-status-desc', area.current_status_desc);
   setVal('edit-problem-category', area.problem_category);
   setVal('edit-sub-category', area.sub_category);
+  setVal('edit-land-status', area.land_status || 'workable');
   setVal('edit-remarks', area.remarks);
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -1793,6 +1944,7 @@ function showEditLandInfoModal(area) {
       current_status_desc: 'edit-current-status-desc',
       problem_category: 'edit-problem-category',
       sub_category: 'edit-sub-category',
+      land_status: 'edit-land-status',
       remarks: 'edit-remarks'
     };
     const update = {};

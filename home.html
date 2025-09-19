@@ -10,31 +10,208 @@
 
 <body>
     <style>
-      /* Minimal, aesthetic modal/form styling */
+      /* Modern, minimalistic, professional styling */
       :root {
-        --ll-bg: #ffffff;
-        --ll-surface: #ffffff;
-        --ll-border: #e5e7eb;
-        --ll-muted: #6b7280;
-        --ll-ink: #111827;
-        --ll-ring: 16,185,129; /* emerald */
-        --ll-primary: 16,185,129;
-        --ll-primary-ink: #ffffff;
-        --ll-shadow: 0 10px 30px rgba(2,6,23,.12);
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --primary-light: #dbeafe;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --neutral-50: #fafafa;
+        --neutral-100: #f5f5f5;
+        --neutral-200: #e5e5e5;
+        --neutral-300: #d4d4d4;
+        --neutral-400: #a3a3a3;
+        --neutral-500: #737373;
+        --neutral-600: #525252;
+        --neutral-700: #404040;
+        --neutral-800: #262626;
+        --neutral-900: #171717;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --radius: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
       }
-      .ll-modal-card { background: var(--ll-surface); box-shadow: var(--ll-shadow); border: 1px solid var(--ll-border); }
-      .ll-modal-card .ll-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-      @media (max-width: 720px) { .ll-modal-card .ll-form-grid { grid-template-columns: 1fr !important; } }
-      .ll-field { display: flex; flex-direction: column; gap: 6px; }
-      .ll-label { font-size: 11px !important; text-transform: uppercase; letter-spacing: .06em; color: var(--ll-muted); font-weight: 700; }
-      .ll-input { width: 100%; padding: 11px 12px; border: 1px solid var(--ll-border); border-radius: 12px; background: var(--ll-bg); color: var(--ll-ink); outline: none; transition: box-shadow .15s, border-color .15s, background .15s; }
-      .ll-input:hover { background:#f9fafb; }
-      .ll-input:focus { border-color: rgba(var(--ll-ring),1); box-shadow: 0 0 0 4px rgba(var(--ll-ring),.15); background:#fff; }
-      .ll-input[disabled] { background:#f8fafc; color:#94a3b8; }
-      .ll-actions .ll-btn, .ll-actions .ll-btn-primary { font-size: 14px; border-radius: 10px; }
-      .ll-chip { display:inline-flex; align-items:center; padding: 4px 8px; border-radius: 999px; border:1px solid var(--ll-border); background:#f8fafc; color:#475569; font-size:12px; }
-      .ll-section { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px 14px; }
-      @media (max-width: 720px) { .ll-section { grid-template-columns: 1fr; } }
+
+      /* Global resets and base styles */
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; line-height: 1.6; color: var(--neutral-800); }
+
+      /* Modal styling */
+      .ll-modal-overlay { 
+        background: rgba(0, 0, 0, 0.4); 
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.2s ease-out;
+      }
+      
+      .ll-modal-card { 
+        background: white; 
+        box-shadow: var(--shadow-xl); 
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--neutral-200);
+        overflow: hidden;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .ll-modal-card .ll-form-grid { 
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
+        gap: 1rem;
+      }
+      
+      @media (max-width: 768px) { 
+        .ll-modal-card .ll-form-grid { grid-template-columns: 1fr !important; } 
+      }
+
+      .ll-field { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 0.5rem; 
+      }
+
+      .ll-label { 
+        font-size: 0.875rem; 
+        font-weight: 600; 
+        color: var(--neutral-700);
+        margin-bottom: 0.25rem;
+      }
+
+      .ll-input { 
+        width: 100%; 
+        padding: 0.75rem 1rem; 
+        border: 1px solid var(--neutral-300); 
+        border-radius: var(--radius); 
+        background: white; 
+        color: var(--neutral-800); 
+        font-size: 0.875rem;
+        outline: none; 
+        transition: all 0.2s ease;
+      }
+
+      .ll-input:hover { 
+        border-color: var(--neutral-400);
+        background: var(--neutral-50);
+      }
+
+      .ll-input:focus { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 3px var(--primary-light); 
+        background: white;
+      }
+
+      .ll-input[disabled] { 
+        background: var(--neutral-100); 
+        color: var(--neutral-500);
+        cursor: not-allowed;
+      }
+
+      .ll-actions { 
+        display: flex; 
+        gap: 0.75rem; 
+        justify-content: flex-end; 
+        padding: 1.5rem; 
+        border-top: 1px solid var(--neutral-200); 
+        background: var(--neutral-50);
+      }
+
+      .ll-btn { 
+        padding: 0.75rem 1.5rem; 
+        border-radius: var(--radius); 
+        font-size: 0.875rem; 
+        font-weight: 600;
+        border: 1px solid var(--neutral-300);
+        background: white;
+        color: var(--neutral-700);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .ll-btn:hover {
+        background: var(--neutral-50);
+        border-color: var(--neutral-400);
+      }
+
+      .ll-btn-primary { 
+        background: var(--primary); 
+        color: white; 
+        border: 1px solid var(--primary);
+      }
+
+      .ll-btn-primary:hover {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+      }
+
+      .ll-chip { 
+        display: inline-flex; 
+        align-items: center; 
+        padding: 0.25rem 0.75rem; 
+        border-radius: 9999px; 
+        border: 1px solid var(--neutral-300); 
+        background: var(--neutral-100); 
+        color: var(--neutral-600); 
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .ll-section { 
+        display: grid; 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+        gap: 1rem;
+      }
+
+      @media (max-width: 768px) { 
+        .ll-section { grid-template-columns: 1fr; } 
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes slideUp {
+        from { 
+          opacity: 0; 
+          transform: translateY(20px) scale(0.95); 
+        }
+        to { 
+          opacity: 1; 
+          transform: translateY(0) scale(1); 
+        }
+      }
+
+      /* Status indicators */
+      .status-workable {
+        color: var(--success);
+        background: var(--success-light);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius);
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .status-problematic {
+        color: var(--danger);
+        background: var(--danger-light);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius);
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
     </style>
     <!--top area-->
     <div class="box">
@@ -342,7 +519,7 @@
     </main>
 
     <main id="map" class="container">
-        <iframe id="map-embed" title="LandLord Map" src="https://joashrautraut.github.io/landlord-ex2/home.html#map" style="width:100vw;height:100vh;min-height:400px;position:fixed;left:0;top:0;border:0;z-index:0;"></iframe>
+        <div id="mapid" style="width:100vw;height:100vh;min-height:400px;position:fixed;left:0;top:0;border:0;z-index:0;"></div>
         
         <!-- ADD BEARINGS Button - Bottom Right -->
         <button id="add-bearing-btn" class="add-bearing-btn" aria-label="Add Bearing">
@@ -492,14 +669,63 @@
           </div>
         </div>
         
-        <div id="landarea-panel" class="landarea-panel expanded">
-          <button id="landarea-panel-toggle" class="landarea-panel-toggle" aria-label="Toggle Land Area Panel">&#9776;</button>
-          <div class="landarea-panel-content">
-            <div class="landarea-panel-header">
-              <span id="landarea-count">Land Areas: ...</span>
+        <div id="landarea-panel" class="landarea-panel expanded" style="
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          width: 320px;
+          max-height: calc(100vh - 100px);
+          background: white;
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
+          border: 1px solid var(--neutral-200);
+          z-index: 1000;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        ">
+          <button id="landarea-panel-toggle" class="landarea-panel-toggle" aria-label="Toggle Land Holdings Panel" style="
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 10;
+            transition: all 0.2s ease;
+          ">&#9776;</button>
+          <div class="landarea-panel-content" style="padding: 1rem;">
+            <div class="landarea-panel-header" style="
+              margin-bottom: 1rem;
+              padding-left: 3rem;
+            ">
+              <h3 style="
+                margin: 0;
+                font-size: 1.125rem;
+                font-weight: 700;
+                color: var(--neutral-800);
+              ">Land Holdings</h3>
+              <p id="landarea-count" style="
+                margin: 0.25rem 0 0 0;
+                font-size: 0.875rem;
+                color: var(--neutral-500);
+              ">Loading...</p>
             </div>
-            <ul id="landarea-list" class="landarea-list">
-              <!-- Land area items will be populated by JS -->
+            <ul id="landarea-list" class="landarea-list" style="
+              list-style: none;
+              padding: 0;
+              margin: 0;
+              max-height: calc(100vh - 200px);
+              overflow-y: auto;
+            ">
+              <!-- Land holdings items will be populated by JS -->
             </ul>
           </div>
         </div>
@@ -511,6 +737,357 @@
         <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
         <script src="https://unpkg.com/leaflet-polygon-mask/dist/leaflet-polygon-mask.min.js"></script>
         <script src="https://unpkg.com/leaflet.markercluster@1.3.0/dist/leaflet.markercluster.js"></script>
+        
+        <!-- Manolo Fortich Satellite Map -->
+        <script>
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initManoloFortichMap();
+        });
+
+        function initManoloFortichMap() {
+            // Manolo Fortich bounds - Focused on municipality with northern coverage
+            const MANOLO_FORTICH_BOUNDS = L.latLngBounds(
+                [8.0000, 124.5000], // southwest corner
+                [8.7000, 125.3000]  // northeast corner
+            );
+
+            const map = L.map('mapid', {
+                center: [8.35, 124.9], // center of Manolo Fortich
+                zoom: 9, // zoomed out to show more area
+                maxBounds: MANOLO_FORTICH_BOUNDS,
+                maxBoundsViscosity: 0.01, // very flexible bounds
+                minZoom: 5, // allow more zoom out
+                maxZoom: 20,
+                worldCopyJump: false
+            });
+
+            // Add Google Satellite tile layer
+            L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                attribution: 'Tiles © Google — Source: Google Earth',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Add Google Hybrid layer for labels (roads, landmarks, place names)
+            L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+                attribution: 'Labels © Google',
+                opacity: 0.8,
+                pane: 'overlayPane'
+            }).addTo(map);
+
+            // Set bounds but don't enforce them strictly
+            map.setMaxBounds(MANOLO_FORTICH_BOUNDS);
+            map.fitBounds(MANOLO_FORTICH_BOUNDS);
+
+            // Add municipality boundary overlay
+            addMunicipalityBoundary(map, MANOLO_FORTICH_BOUNDS);
+
+            // Add landmarks and points of interest for Manolo Fortich (including all barangays)
+            addManoloFortichLandmarks(map);
+
+            // Add interactive controls
+            addInteractiveControls(map, MANOLO_FORTICH_BOUNDS);
+
+            // Store map reference globally
+            window.leafletMap = map;
+        }
+
+        // Add municipality boundary overlay
+        function addMunicipalityBoundary(map, bounds) {
+            // Create a rectangle showing the municipality boundary
+            const boundary = L.rectangle(bounds, {
+                color: '#ff6b35',
+                weight: 3,
+                fillColor: '#ff6b35',
+                fillOpacity: 0.1,
+                dashArray: '10, 5'
+            }).addTo(map);
+
+            // Add label for the boundary
+            const center = bounds.getCenter();
+            L.marker(center, {
+                icon: L.divIcon({
+                    className: 'municipality-label',
+                    html: '<div style="background: #ff6b35; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">Manolo Fortich Municipality</div>',
+                    iconSize: [120, 20],
+                    iconAnchor: [60, 10]
+                })
+            }).addTo(map);
+        }
+
+        // Add interactive controls
+        function addInteractiveControls(map, bounds) {
+            // Create control panel
+            const controlPanel = L.control({position: 'topright'});
+            
+            controlPanel.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'map-control-panel');
+                div.style.cssText = `
+                    background: white;
+                    padding: 1rem;
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-lg);
+                    border: 1px solid var(--neutral-200);
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                    font-size: 0.875rem;
+                    min-width: 200px;
+                `;
+                
+                div.innerHTML = `
+                    <div style="margin-bottom: 1rem; font-weight: 700; color: var(--neutral-800); font-size: 1rem;">Map Controls</div>
+                    <button onclick="fitToMunicipality()" style="
+                        width: 100%; 
+                        padding: 0.75rem; 
+                        margin: 0.25rem 0; 
+                        border: 1px solid var(--neutral-300); 
+                        border-radius: var(--radius); 
+                        background: white; 
+                        color: var(--neutral-700);
+                        cursor: pointer; 
+                        font-weight: 600;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    " onmouseover="this.style.background='var(--neutral-50)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='white'; this.style.borderColor='var(--neutral-300)'">🏠 Fit to Municipality</button>
+                    <button onclick="showAllBarangays()" style="
+                        width: 100%; 
+                        padding: 0.75rem; 
+                        margin: 0.25rem 0; 
+                        border: 1px solid var(--neutral-300); 
+                        border-radius: var(--radius); 
+                        background: white; 
+                        color: var(--neutral-700);
+                        cursor: pointer; 
+                        font-weight: 600;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    " onmouseover="this.style.background='var(--neutral-50)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='white'; this.style.borderColor='var(--neutral-300)'">📍 Show All Barangays</button>
+                    <button onclick="toggleBoundary()" style="
+                        width: 100%; 
+                        padding: 0.75rem; 
+                        margin: 0.25rem 0; 
+                        border: 1px solid var(--neutral-300); 
+                        border-radius: var(--radius); 
+                        background: white; 
+                        color: var(--neutral-700);
+                        cursor: pointer; 
+                        font-weight: 600;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    " onmouseover="this.style.background='var(--neutral-50)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='white'; this.style.borderColor='var(--neutral-300)'">🔲 Toggle Boundary</button>
+                    <div style="
+                        margin-top: 1rem; 
+                        padding-top: 1rem;
+                        border-top: 1px solid var(--neutral-200);
+                        font-size: 0.75rem; 
+                        color: var(--neutral-500);
+                    ">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>Zoom:</span>
+                            <span id="zoom-level" style="font-weight: 600; color: var(--primary);">11</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Bounds:</span>
+                            <span style="font-weight: 600; color: var(--success);">Flexible</span>
+                        </div>
+                    </div>
+                `;
+                
+                return div;
+            };
+            
+            controlPanel.addTo(map);
+
+            // Add zoom level display
+            map.on('zoomend', function() {
+                const zoomLevel = document.getElementById('zoom-level');
+                if (zoomLevel) {
+                    zoomLevel.textContent = map.getZoom();
+                }
+            });
+        }
+
+        // Global functions for interactive controls
+        window.fitToMunicipality = function() {
+            if (window.leafletMap) {
+                const bounds = L.latLngBounds(
+                    [8.0000, 124.5000],
+                    [8.7000, 125.3000]
+                );
+                window.leafletMap.fitBounds(bounds, {padding: [20, 20]});
+            }
+        };
+
+        window.showAllBarangays = function() {
+            if (window.leafletMap) {
+                const bounds = L.latLngBounds(
+                    [8.0000, 124.5000],
+                    [8.7000, 125.3000]
+                );
+                window.leafletMap.setView([8.35, 124.9], 8);
+                window.leafletMap.fitBounds(bounds, {padding: [50, 50]});
+            }
+        };
+
+        window.toggleBoundary = function() {
+            // This would toggle the boundary visibility
+            // Implementation depends on how you want to handle this
+            console.log('Toggle boundary - feature can be implemented');
+        };
+
+        // Add landmarks and points of interest for Manolo Fortich
+        function addManoloFortichLandmarks(map) {
+            // Manolo Fortich Municipal Hall
+            L.marker([8.3689, 124.8844]).addTo(map)
+                .bindPopup('<b>Manolo Fortich Municipal Hall</b><br>Government Center');
+
+            // Manolo Fortich Public Market
+            L.marker([8.3667, 124.8833]).addTo(map)
+                .bindPopup('<b>Manolo Fortich Public Market</b><br>Local Market Area');
+
+            // Manolo Fortich Elementary School
+            L.marker([8.3656, 124.8822]).addTo(map)
+                .bindPopup('<b>Manolo Fortich Elementary School</b><br>Educational Institution');
+
+            // Manolo Fortich High School
+            L.marker([8.3644, 124.8811]).addTo(map)
+                .bindPopup('<b>Manolo Fortich High School</b><br>Secondary Education');
+
+            // Manolo Fortich Health Center
+            L.marker([8.3678, 124.8856]).addTo(map)
+                .bindPopup('<b>Manolo Fortich Health Center</b><br>Healthcare Facility');
+
+            // Manolo Fortich Church
+            L.marker([8.3690, 124.8867]).addTo(map)
+                .bindPopup('<b>Manolo Fortich Church</b><br>Religious Center');
+
+            // Add some agricultural areas
+            L.circle([8.3550, 124.8750], {
+                color: 'green',
+                fillColor: 'lightgreen',
+                fillOpacity: 0.3,
+                radius: 500
+            }).addTo(map).bindPopup('<b>Agricultural Area</b><br>Farming Zone');
+
+            L.circle([8.3450, 124.8950], {
+                color: 'green',
+                fillColor: 'lightgreen',
+                fillOpacity: 0.3,
+                radius: 400
+            }).addTo(map).bindPopup('<b>Agricultural Area</b><br>Farming Zone');
+
+            // Add some residential areas
+            L.circle([8.3750, 124.8900], {
+                color: 'blue',
+                fillColor: 'lightblue',
+                fillOpacity: 0.2,
+                radius: 300
+            }).addTo(map).bindPopup('<b>Residential Area</b><br>Housing Zone');
+
+            // Add main roads
+            const mainRoads = [
+                [[8.3600, 124.8800], [8.3700, 124.8900]], // Main road 1
+                [[8.3500, 124.8750], [8.3600, 124.8850]], // Main road 2
+                [[8.3650, 124.8700], [8.3750, 124.8800]]  // Main road 3
+            ];
+
+            mainRoads.forEach(road => {
+                L.polyline(road, {
+                    color: 'orange',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map).bindPopup('<b>Main Road</b><br>Primary Access Route');
+            });
+
+            // MANTIBUGAO AREA - More accurate coordinates
+            L.marker([8.3500, 124.7500]).addTo(map)
+                .bindPopup('<b>Mantibugao Barangay</b><br>Rural Community<br>📍 Mantibugao');
+
+            L.marker([8.3450, 124.7450]).addTo(map)
+                .bindPopup('<b>Mantibugao Elementary School</b><br>Educational Institution<br>📍 Mantibugao');
+
+            // ALAE AREA - More accurate coordinates
+            L.marker([8.4500, 125.1000]).addTo(map)
+                .bindPopup('<b>Alae Barangay</b><br>Rural Community<br>📍 Alae');
+
+            L.marker([8.4450, 125.0950]).addTo(map)
+                .bindPopup('<b>Alae Elementary School</b><br>Educational Institution<br>📍 Alae');
+
+            // MAMBATANGAN AREA - More accurate coordinates
+            L.marker([8.5000, 125.0000]).addTo(map)
+                .bindPopup('<b>Mambatangan Barangay</b><br>Rural Community<br>📍 Mambatangan');
+
+            L.marker([8.4950, 124.9950]).addTo(map)
+                .bindPopup('<b>Mambatangan Elementary School</b><br>Educational Institution<br>📍 Mambatangan');
+
+            // OTHER IMPORTANT AREAS - Complete Manolo Fortich Barangays
+            L.marker([8.2800, 124.8000]).addTo(map)
+                .bindPopup('<b>San Miguel Barangay</b><br>Rural Community<br>📍 San Miguel');
+
+            L.marker([8.3800, 125.0000]).addTo(map)
+                .bindPopup('<b>Dahilayan Barangay</b><br>Rural Community<br>📍 Dahilayan');
+
+            // Additional barangays for complete coverage
+            L.marker([8.2500, 124.7000]).addTo(map)
+                .bindPopup('<b>Lingion Barangay</b><br>Rural Community<br>📍 Lingion');
+
+            L.marker([8.3000, 124.8500]).addTo(map)
+                .bindPopup('<b>Kalugmanan Barangay</b><br>Rural Community<br>📍 Kalugmanan');
+
+            L.marker([8.4000, 124.9500]).addTo(map)
+                .bindPopup('<b>Dahilayan Barangay</b><br>Rural Community<br>📍 Dahilayan');
+
+            L.marker([8.4500, 125.0000]).addTo(map)
+                .bindPopup('<b>Mambatangan Barangay</b><br>Rural Community<br>📍 Mambatangan');
+
+            L.marker([8.3500, 125.1000]).addTo(map)
+                .bindPopup('<b>Alae Barangay</b><br>Rural Community<br>📍 Alae');
+
+            L.marker([8.2000, 124.9000]).addTo(map)
+                .bindPopup('<b>Mantibugao Barangay</b><br>Rural Community<br>📍 Mantibugao');
+
+            // Additional northern barangays for complete coverage
+            L.marker([8.5500, 125.1000]).addTo(map)
+                .bindPopup('<b>Northern Barangay</b><br>Rural Community<br>📍 Northern Manolo Fortich');
+
+            L.marker([8.6000, 125.1500]).addTo(map)
+                .bindPopup('<b>Far Northern Area</b><br>Rural Community<br>📍 Northern Manolo Fortich');
+
+            L.marker([8.7000, 125.2000]).addTo(map)
+                .bindPopup('<b>Northeast Barangay</b><br>Rural Community<br>📍 Northeast Manolo Fortich');
+
+            // Edge markers to show full municipality extent
+            L.marker([8.0000, 124.4000]).addTo(map)
+                .bindPopup('<b>Southwest Corner</b><br>Municipality Boundary<br>📍 Manolo Fortich');
+
+            L.marker([8.8000, 125.4000]).addTo(map)
+                .bindPopup('<b>Northeast Corner</b><br>Municipality Boundary<br>📍 Manolo Fortich');
+        }
+
+        // Navigation function to show map
+        function navigateTo(sectionId) {
+            document.querySelectorAll('.container').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+
+            if (sectionId === 'map') {
+                // Reinitialize map when navigating to map section
+                setTimeout(() => {
+                    if (window.leafletMap) {
+                        window.leafletMap.invalidateSize();
+                    } else {
+                        initManoloFortichMap();
+                    }
+                }, 100);
+            }
+        }
+        </script>
     </main>
 
     <!-- Cover area-->
@@ -657,6 +1234,7 @@
       <div class="ll-field"><label class="ll-label">Status Description</label><input class="ll-input" id="edit-current-status-desc" type="text" /></div>
       <div class="ll-field"><label class="ll-label">Problem Category</label><input class="ll-input" id="edit-problem-category" type="text" /></div>
       <div class="ll-field"><label class="ll-label">Sub Category</label><input class="ll-input" id="edit-sub-category" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Land Status</label><select class="ll-input" id="edit-land-status"><option value="workable">Workable</option><option value="problematic">Problematic</option></select></div>
       <div class="ll-field" style="grid-column: 1 / -1;"><label class="ll-label">Remarks</label><textarea class="ll-input" id="edit-remarks" rows="3" style="resize:vertical;"></textarea></div>
     </div>
     <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #f1f5f9; background:#fafafa;">
