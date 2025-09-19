@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="gov-header" role="banner">
+      <div class="gov-header-inner">
+        <div class="gov-brand" aria-label="Department of Agrarian Reform">
+          <div class="gov-logo" aria-hidden="true">DAR</div>
+          <div class="gov-text">
+            <div class="gov-supra">Republic of the Philippines</div>
+            <div class="gov-agency">Department of Agrarian Reform</div>
+            <div class="gov-system">Land Administration System</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="centered-wrapper">
+    <div class="signup-container" role="region" aria-labelledby="signin-heading">
+        <h1 id="signin-heading">Sign in</h1>
+        <p class="page-intro">Use your assigned account to access the system.</p>
+        <div id="form-error" class="form-error" role="alert" aria-live="polite" hidden></div>
+        <form id="loginForm" onsubmit="redirectHome(event)" novalidate>
+            <div class="form-group">
+                <label for="username">Username or email</label>
+                <input type="text" id="username" name="username" placeholder="Enter username or email" autocomplete="username" required aria-required="true">
+            </div>
+    
+            <div class="form-group">
+                <label for="password">Password</label>
+                  <div style="position:relative;">
+                    <input type="password" id="password" name="password" autocomplete="current-password" required aria-required="true" style="padding-right:84px;">
+                    <button type="button" id="toggle-password" class="link-btn" aria-pressed="false" aria-controls="password" aria-label="Show password" style="position:absolute; right:12px; top:50%; transform:translateY(-50%);">Show</button>
+                  </div>
+            </div>
+    
+            <button type="submit" id="submit-btn" class="signup-btn">
+              <span class="btn-label">Sign in</span>
+              <span class="btn-spinner" aria-hidden="true"></span>
+            </button>
+        </form>
+        <p class="secondary-text">If you are a technician, use the <a class="portal-link" href="https://jam-piodos.github.io/landlord">technician portal</a>.</p>
+      </div>
+    </div>
+    <footer class="gov-footer" role="contentinfo">
+      <div class="gov-footer-inner">
+        <div>© Department of Agrarian Reform</div>
+        <div class="gov-footer-meta">For authorized use only</div>
+      </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://ozkxzvpiiqhhzbyzetsy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96a3h6dnBpaXFoaHpieXpldHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjcwMTksImV4cCI6MjA2NjYwMzAxOX0.ra2xvmu97bESlkHkwvPIKjbbccJbQYyHbbFzbJXa4sU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function redirectHome(event) {
+            event.preventDefault();
+            const usernameEl = document.getElementById('username');
+            const passwordEl = document.getElementById('password');
+            const errorEl = document.getElementById('form-error');
+            const submitBtn = document.getElementById('submit-btn');
+            const btnLabel = submitBtn.querySelector('.btn-label');
+
+            errorEl.hidden = true;
+            errorEl.textContent = '';
+
+            const identifier = usernameEl.value.trim();
+            const password = passwordEl.value;
+            if (!identifier || !password) {
+                errorEl.textContent = 'Enter your username and password.';
+                errorEl.hidden = false;
+                errorEl.focus?.();
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            try {
+                const { data: user, error } = await supabase
+                    .from('users')
+                    .select('username, user_email, user_password, role, active')
+                    .or(`username.eq.${identifier},user_email.eq.${identifier}`)
+                    .single();
+
+                if (error || !user) {
+                    throw new Error('Invalid credentials.');
+                }
+                if (user.active === false) {
+                    throw new Error('Your account is deactivated.');
+                }
+                if (String(user.user_password) !== String(password)) {
+                    throw new Error('Invalid credentials.');
+                }
+
+                const role = String(user.role || '').toLowerCase();
+                if (role === 'admin' || role === 'office') {
+                    window.location.href = 'home.html#map';
+                    return;
+                }
+                if (role === 'technician') {
+                    window.location.href = 'https://jam-piodos.github.io/landlord';
+                    return;
+                }
+
+                throw new Error('Your account is not permitted to log in here.');
+            } catch (e) {
+                errorEl.textContent = e?.message || 'Login failed. Please try again.';
+                errorEl.hidden = false;
+                errorEl.focus?.();
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        }
+      // Show/hide password (accessible)
+      document.getElementById('toggle-password').onclick = function() {
+        var pwd = document.getElementById('password');
+        var isHidden = pwd.type === 'password';
+        pwd.type = isHidden ? 'text' : 'password';
+        this.setAttribute('aria-pressed', String(isHidden));
+        this.textContent = isHidden ? 'Hide' : 'Show';
+        this.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      };
+    </script>
+    <style>
+      :root {
+        /* Dark theme tuned to the screenshot */
+        --bg: #0f1417;
+        --text: #e8ece9;
+        --muted: #a6b0a9;
+        --card: #1a2125;
+        --border: #2a3530;
+        --primary: #0b6b3a; /* DAR green */
+        --primary-hover: #094f2a;
+        --focus: #ffdd00; /* GOV.UK focus yellow */
+        --header-bg: #0a5b32;
+        --header-text: #ffffff;
+        --logo-bg: #084a29;
+        --input-bg: #f8fbf8;
+      }
+      body.login-page { background: linear-gradient(180deg, #122018 0%, var(--bg) 180px); color: var(--text); min-height: 100vh; display:flex; flex-direction:column; }
+      .gov-header { background: var(--header-bg); color: var(--header-text); box-shadow: 0 1px 4px rgba(0,0,0,0.24); position: sticky; top: 0; z-index: 1000; }
+      .gov-header-inner { max-width: 1040px; margin: 0 auto; padding: 12px 16px; }
+      .gov-brand { display:flex; align-items:center; gap: 12px; }
+      .gov-logo { width: 42px; height: 42px; border-radius: 50%; background: var(--logo-bg); display:flex; align-items:center; justify-content:center; font-weight: 800; letter-spacing: .5px; }
+      .gov-text { line-height: 1.15; }
+      .gov-supra { font-size: .8rem; opacity: .9; }
+      .gov-agency { font-size: 1.05rem; font-weight: 700; letter-spacing: .2px; }
+      .gov-system { font-size: .86rem; opacity: .95; }
+      .centered-wrapper {
+        width: 100vw;
+        height: calc(100vh - 84px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 24px;
+      }
+      .signup-container {
+        background: var(--card);
+        border-radius: 12px;
+        box-shadow: 0 14px 38px rgba(0,0,0,0.35);
+        padding: 36px 30px 30px 30px;
+        max-width: 440px;
+        width: 100%;
+        margin: 22px auto;
+        text-align: center;
+        border: 1px solid var(--border);
+        border-top: 6px solid var(--primary);
+      }
+      .signup-container h1 { font-size: 1.75rem; margin: 0 0 10px 0; font-weight: 800; letter-spacing: .2px; }
+      .page-intro { margin: 0 0 18px 0; color: var(--muted); font-size: .98rem; }
+      .form-error { border-left: 4px solid #d4351c; background: #f3f2f1; color:#d4351c; padding: 10px 12px; margin: 0 0 14px 0; text-align:left; border-radius:4px; }
+      .form-group label {
+        color: var(--text);
+        font-size: .98rem;
+        margin-bottom: 8px;
+        display: block;
+        text-align: left;
+      }
+      .form-group { margin-bottom: 14px; }
+      .form-group input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #bfc7c2;
+        background: var(--input-bg);
+        color: #0b0c0c;
+        font-size: 1.08em;
+        margin-bottom: 14px;
+        outline: none;
+        transition: border 0.15s, box-shadow 0.15s;
+      }
+      .form-group input:focus {
+        border: 1px solid var(--primary);
+        box-shadow: 0 0 0 3px var(--focus);
+        background: #ffffff;
+      }
+      .form-group input::placeholder { color: #7a837c; }
+      /* Make the toggle button align perfectly inside the input */
+      #toggle-password { line-height: 1; }
+      .signup-btn {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 14px 0;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        width: 100%;
+        position: relative;
+      }
+      .signup-btn:hover {
+        background: var(--primary-hover);
+      }
+      .signup-btn:focus { outline: none; box-shadow: 0 0 0 3px var(--focus); }
+      .signup-btn.loading .btn-label { opacity: 0; }
+      .signup-btn.loading .btn-spinner { display: inline-block; }
+      .btn-spinner { display:none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.6); border-top-color: #fff; border-radius: 50%; animation: spin 0.9s linear infinite; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+      @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+      .secondary-text { margin-top: 14px; color: var(--muted); font-size: .92rem; }
+      .portal-link { color: var(--primary); font-weight: 700; text-decoration: none; }
+      .portal-link:hover { text-decoration: underline; }
+      .link-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; padding: 2px 4px; }
+      .link-btn:hover { text-decoration: underline; }
+      .gov-footer { background: transparent; color: var(--muted); }
+      .gov-footer-inner { max-width: 1040px; margin: 8px auto 18px; padding: 0 16px; display:flex; align-items:center; justify-content: space-between; font-size: .9rem; }
+      .gov-footer-meta { opacity: .9; font-size: .85rem; }
+    </style>
+</body>
+</html>

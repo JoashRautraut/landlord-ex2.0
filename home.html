@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LandLord</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <style>
+      /* Minimal, aesthetic modal/form styling */
+      :root {
+        --ll-bg: #ffffff;
+        --ll-surface: #ffffff;
+        --ll-border: #e5e7eb;
+        --ll-muted: #6b7280;
+        --ll-ink: #111827;
+        --ll-ring: 16,185,129; /* emerald */
+        --ll-primary: 16,185,129;
+        --ll-primary-ink: #ffffff;
+        --ll-shadow: 0 10px 30px rgba(2,6,23,.12);
+      }
+      .ll-modal-card { background: var(--ll-surface); box-shadow: var(--ll-shadow); border: 1px solid var(--ll-border); }
+      .ll-modal-card .ll-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      @media (max-width: 720px) { .ll-modal-card .ll-form-grid { grid-template-columns: 1fr !important; } }
+      .ll-field { display: flex; flex-direction: column; gap: 6px; }
+      .ll-label { font-size: 11px !important; text-transform: uppercase; letter-spacing: .06em; color: var(--ll-muted); font-weight: 700; }
+      .ll-input { width: 100%; padding: 11px 12px; border: 1px solid var(--ll-border); border-radius: 12px; background: var(--ll-bg); color: var(--ll-ink); outline: none; transition: box-shadow .15s, border-color .15s, background .15s; }
+      .ll-input:hover { background:#f9fafb; }
+      .ll-input:focus { border-color: rgba(var(--ll-ring),1); box-shadow: 0 0 0 4px rgba(var(--ll-ring),.15); background:#fff; }
+      .ll-input[disabled] { background:#f8fafc; color:#94a3b8; }
+      .ll-actions .ll-btn, .ll-actions .ll-btn-primary { font-size: 14px; border-radius: 10px; }
+      .ll-chip { display:inline-flex; align-items:center; padding: 4px 8px; border-radius: 999px; border:1px solid var(--ll-border); background:#f8fafc; color:#475569; font-size:12px; }
+      .ll-section { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px 14px; }
+      @media (max-width: 720px) { .ll-section { grid-template-columns: 1fr; } }
+    </style>
+    <!--top area-->
+    <div class="box">
+        <button id="burger-btn" aria-label="Open navigation">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+        </button>
+        <h1>LANDLORD</h1>
+        <img id="dp" src="https://tse2.mm.bing.net/th?id=OIP.yYUwl3GDU07Q5J5ttyW9fQHaHa&pid=Api&P=0&h=220"
+            alt="User Icon" onclick="showLogoutConfirmation()" style="cursor: pointer;">
+    </div>
+
+
+    <nav>
+        <button id="sidebar-back-btn" aria-label="Close sidebar" style="display:none; margin:14px 0 6px 10px; background:none; border:none; color:#ffd600; font-size:1.2em; font-weight:600; cursor:pointer; padding:4px 10px; border-radius:6px;">
+          <span style="font-size:1.3em;vertical-align:middle;">&#8592;</span> <span style="font-size:0.98em;vertical-align:middle;">Back</span>
+        </button>
+        <ul>
+            <li><a href="#" onclick="navigateTo('map'); closeSidebar();">HOME</a></li>
+            <li><a href="#" onclick="navigateTo('home'); closeSidebar();">REPORTS</a></li>
+            <li><a href="#" onclick="navigateTo('profile'); closeSidebar();">USER MANAGEMENT</a></li>
+            <li><a href="#" onclick="navigateTo('workspace'); closeSidebar();">ACTIVITY LOGS</a></li>
+        </ul>
+    </nav>
+    </div>
+
+    <main id="home" class="container">
+      <!-- ===== Dashboard: Summary Cards ===== -->
+      <!-- Shows quick KPIs pulled from Supabase (total users, landowners, land areas). -->
+        <div class="dashboard-cards">
+            <div class="dashboard-card attendance">
+                <div class="card-title"><span class="dot green"></span> Total Users</div>
+                <div class="card-value" id="total-users">...</div>
+                <div class="card-meta">Last attend: 02 March, 2020<br>Reason: Torchbearer</div>
+            </div>
+            <div class="dashboard-card fee-due">
+                <div class="card-title"><span class="dot yellow"></span> Total Landowners<span class="send-notice"></span></div>
+                <div class="card-value" id="total-landowners">...</div>
+                <div class="card-meta">Last paid: 02 March, 2020<br>Method: Online</div>
+            </div>
+            <div class="dashboard-card exam-marks">
+                <div class="card-title"><span class="dot blue"></span> Total Land areas</div>
+                <div class="card-value" id="total-landareas">...</div>
+                <div class="card-meta">Last exam: 1st Semester<br>Top Marks: English (98%)</div>
+            </div>
+        </div>
+        <!-- ===== Dashboard: Charts ===== -->
+        <!-- Static demo charts (Pie/Bar via Google Charts) for visual summaries. -->
+        <div class="dashboard-charts">
+            <div class="chart-section">
+                <h3>Recent Exam Report</h3>
+                <div id="barchart_div" style="width: 400px; height: 300px;"></div>
+            </div>
+            <div class="chart-section">
+                <h3>Attendance Summary</h3>
+                <div id="piechart" style="width: 400px; height: 300px;"></div>
+            </div>
+        </div>
+        <!-- ===== Reports: Container ===== -->
+        <!-- Parent wrapper for the tabbed reporting UI and its controls. -->
+        <section id="reports" style="margin-top:32px;">
+          <!-- Reports: Styles (scoped to reports section) -->
+          <!-- Styles only affect elements inside the Reports area (tabs, filters, table). -->
+          <style>
+            .report-tabs-bar {
+              display: flex;
+              gap: 0;
+              background: #202124;
+              border-radius: 10px 10px 0 0;
+              overflow: hidden;
+              box-shadow: 0 2px 8px #0002;
+              margin-bottom: 0;
+            }
+            .report-tab-btn {
+              flex: 1;
+              background: none;
+              border: none;
+              color: #bdbdbd;
+              font-size: 1.08em;
+              font-weight: 600;
+              padding: 14px 0 12px 0;
+              cursor: pointer;
+              transition: background 0.18s, color 0.18s, border-bottom 0.18s, box-shadow 0.18s, transform 0.18s;
+              border-bottom: 3px solid transparent;
+              outline: none;
+              position: relative;
+            }
+            .report-tab-btn.active, .report-tab-btn:focus {
+              color: #ffd600;
+              background: #23272f;
+              border-bottom: 3px solid #ffd600;
+              z-index: 2;
+              box-shadow: 0 2px 8px #ffd60044;
+              animation: tabPop 0.3s cubic-bezier(.4,1.4,.6,1) 1;
+            }
+            .report-tab-btn:hover:not(.active) {
+              background: #23272f;
+              color: #fff;
+              transform: translateY(-2px) scale(1.04);
+              box-shadow: 0 2px 8px #ffd60022;
+            }
+            @keyframes tabPop {
+              0% { transform: scale(0.96); box-shadow: 0 0 0 #ffd60000; }
+              60% { transform: scale(1.06); box-shadow: 0 4px 16px #ffd60044; }
+              100% { transform: scale(1); box-shadow: 0 2px 8px #ffd60044; }
+            }
+            #report-filters {
+              background: #23272f;
+              border-radius: 0 0 10px 10px;
+              box-shadow: 0 2px 8px #0002;
+              padding: 14px 18px 10px 18px;
+              margin-bottom: 0;
+              display: flex;
+              gap: 16px;
+              align-items: center;
+              flex-wrap: wrap;
+              opacity: 0;
+              animation: fadeIn 0.7s 0.1s forwards;
+            }
+            #report-filters label, #report-filters input[type='date'], #report-filters button {
+              transition: color 0.18s, background 0.18s, border 0.18s, box-shadow 0.18s, transform 0.18s;
+            }
+            #report-filters button:hover {
+              background: #ffd600 !important;
+              color: #23272f !important;
+              transform: scale(1.06);
+              box-shadow: 0 2px 8px #ffd60044;
+            }
+            #report-content {
+              background: #23272f;
+              border-radius: 0 0 12px 12px;
+              box-shadow: 0 4px 24px #000a;
+              padding: 32px 24px 28px 24px;
+              min-height: 220px;
+              color: #fff;
+              margin-top: 0;
+              transition: box-shadow 0.18s, background 0.18s, padding 0.18s;
+              opacity: 0;
+              transform: translateY(24px);
+              animation: fadeInUp 0.7s 0.2s forwards;
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes fadeInUp {
+              0% { opacity: 0; transform: translateY(24px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+            #report-content table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 16px;
+              background: none;
+              opacity: 0;
+              animation: fadeIn 0.7s 0.4s forwards;
+            }
+            #report-content th, #report-content td {
+              padding: 10px 12px;
+              border-bottom: 1px solid #292b32;
+              text-align: left;
+              font-size: 1em;
+              transition: background 0.18s, color 0.18s;
+            }
+            #report-content th {
+              background: #202124;
+              color: #ffd600;
+              font-weight: 700;
+              animation: fadeIn 0.7s 0.5s forwards;
+            }
+            #report-content tr {
+              transition: background 0.18s;
+            }
+            #report-content tr:hover td {
+              background: #292b32;
+              color: #ffd600;
+            }
+            #report-content tr:last-child td {
+              border-bottom: none;
+            }
+            @media (max-width: 700px) {
+              #report-filters, .report-tabs-bar {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px 8px;
+              }
+              #report-content {
+                padding: 18px 6px;
+              }
+            }
+          </style>
+          <!-- Reports: Tabs Bar -->
+          <!-- Switches between report types; the active tab determines what content renders below. -->
+          <div class="report-tabs-bar">
+            <button class="report-tab-btn" data-tab="user-activity">User Activity</button>
+            <button class="report-tab-btn" data-tab="todo-completion">To-Do Completion</button>
+            <button class="report-tab-btn" data-tab="landowner-summary">Landowner Summary</button>
+            <button class="report-tab-btn active" data-tab="map-records">Map Records</button>
+          </div>
+          <!-- Reports: Filters Row -->
+          <!-- Date range and actions (Apply/Export/Print). Apply/export are placeholders you can wire later. -->
+          <div id="report-filters">
+            <label>From: <input type="date" id="report-from-date"></label>
+            <label>To: <input type="date" id="report-to-date"></label>
+            <button id="apply-report-filters" style="background:#ffd600; color:#23272f; border:none; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Apply</button>
+            <button id="export-report-csv" style="background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Export CSV</button>
+            <button id="print-report" style="background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Print</button>
+          </div>
+          <!-- Reports: Dynamic Content Area -->
+          <!-- Populated by JS based on the selected tab. Map Records is filled from Supabase. -->
+          <div id="report-content"></div>
+        </section>
+        <!-- Reports: Logic -->
+        <!-- Handles tab switching, content rendering, and triggers Map Records data loading in app.js. -->
+        <script>
+          // Tabbed Reports UI
+          const reportTabs = document.querySelectorAll('.report-tab-btn');
+          const reportContent = document.getElementById('report-content');
+          let currentTab = 'map-records';
+          function setActiveTab(tab) {
+            reportTabs.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.report-tab-btn[data-tab='${tab}']`).classList.add('active');
+          }
+          function renderReport(tab) {
+            setActiveTab(tab);
+            // Animate report content area
+            reportContent.style.opacity = 0;
+            reportContent.style.transform = 'translateY(24px)';
+            setTimeout(() => {
+              reportContent.style.opacity = 1;
+              reportContent.style.transform = 'translateY(0)';
+            }, 50);
+            if (tab === 'user-activity') {
+              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>User Activity Report</h3>
+                <table>
+                  <thead><tr><th>User</th><th>Action</th><th>Date</th></tr></thead>
+                  <tbody>
+                    <tr><td>Alice</td><td>Logged in</td><td>2024-06-01</td></tr>
+                    <tr><td>Bob</td><td>Added note</td><td>2024-06-01</td></tr>
+                    <tr><td>Charlie</td><td>Completed to-do</td><td>2024-06-02</td></tr>
+                  </tbody>
+                </table>`;
+            } else if (tab === 'todo-completion') {
+              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>To-Do Completion Report</h3>
+                <table>
+                  <thead><tr><th>User</th><th>Task</th><th>Status</th><th>Date</th></tr></thead>
+                  <tbody>
+                    <tr><td>Alice</td><td>Pay rent</td><td>Completed</td><td>2024-06-01</td></tr>
+                    <tr><td>Bob</td><td>Update profile</td><td>Pending</td><td>2024-06-01</td></tr>
+                    <tr><td>Charlie</td><td>Submit report</td><td>Completed</td><td>2024-06-02</td></tr>
+                  </tbody>
+                </table>`;
+            } else if (tab === 'landowner-summary') {
+              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>Landowner Summary</h3>
+                <table>
+                  <thead><tr><th>Landowner</th><th>Properties</th><th>Last Payment</th></tr></thead>
+                  <tbody>
+                    <tr><td>Alice</td><td>3</td><td>2024-05-28</td></tr>
+                    <tr><td>Bob</td><td>1</td><td>2024-05-30</td></tr>
+                    <tr><td>Charlie</td><td>2</td><td>2024-06-01</td></tr>
+                  </tbody>
+                </table>`;
+            } else if (tab === 'map-records') {
+              // Placeholder; real data rendered by app.js once Supabase is loaded
+              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>Map Records</h3>
+                <table id="map-records-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>LO Name</th>
+                      <th>Barangay</th>
+                      <th>Status</th>
+                      <th>Total Area (m²)</th>
+                      <th># Points</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody><tr><td colspan="7">Loading...</td></tr></tbody>
+                </table>`;
+              // Signal to app.js that the Map Records tab is now visible
+              document.dispatchEvent(new CustomEvent('map-records-tab-open'));
+            }
+          }
+          reportTabs.forEach(btn => {
+            btn.onclick = () => {
+              currentTab = btn.getAttribute('data-tab');
+              renderReport(currentTab);
+            };
+          });
+          // Initial render
+          renderReport(currentTab);
+          // Filter and Export (mock logic)
+          document.getElementById('apply-report-filters').onclick = () => {
+            alert('Filters applied (demo only).');
+          };
+          document.getElementById('export-report-csv').onclick = () => {
+            alert('CSV exported (demo only).');
+          };
+          document.getElementById('print-report').onclick = () => {
+            window.print();
+          };
+        </script>
+        <!-- ===== End Reports ===== -->
+    </main>
+
+    <main id="map" class="container">
+        <iframe id="map-embed" title="LandLord Map" src="https://joashrautraut.github.io/landlord-ex2/home.html#map" style="width:100vw;height:100vh;min-height:400px;position:fixed;left:0;top:0;border:0;z-index:0;"></iframe>
+        
+        <!-- ADD BEARINGS Button - Bottom Right -->
+        <button id="add-bearing-btn" class="add-bearing-btn" aria-label="Add Bearing">
+          <span class="add-bearing-icon">+</span>
+        </button>
+        
+        <!-- Bearings Input Modal -->
+        <div id="bearings-modal" class="bearings-modal">
+          <div class="bearings-modal-content">
+            <div class="bearings-modal-header">
+              <div class="header-content">
+                <h3>Survey Points</h3>
+                <p class="header-subtitle">Add survey coordinates to create a traverse</p>
+              </div>
+              <button id="close-bearings-modal" class="close-modal-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div class="bearings-modal-body">
+              <!-- Starting Point Section -->
+              <div class="section">
+                <div class="section-header">
+                  <h4>Starting Point</h4>
+                  <div class="section-indicator"></div>
+                </div>
+                <div class="coordinates-grid">
+                  <div class="coordinate-input" style="grid-column: 1 / -1;">
+                    <label for="lo-name-input">LO Name</label>
+                    <input type="text" id="lo-name-input" placeholder="Enter landowner name" />
+                  </div>
+                  <div class="coordinate-input">
+                    <label for="starting-easting">Easting</label>
+                    <input type="text" id="starting-easting" placeholder="20000.000" value="20000.000">
+                  </div>
+                  <div class="coordinate-input">
+                    <label for="starting-northing">Northing</label>
+                    <input type="text" id="starting-northing" placeholder="20000.000" value="20000.000">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Survey Points Section -->
+              <div class="section">
+                <div class="section-header">
+                  <h4>Survey Points</h4>
+                  <div class="section-indicator"></div>
+                </div>
+                
+                <div class="points-table-wrapper">
+                  <table id="lines-table" class="points-table">
+                    <thead>
+                      <tr>
+                        <th>Point</th>
+                        <th>Northing</th>
+                        <th>Easting</th>
+                        <th>Distance</th>
+                        <th>Bearing</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="lines-tbody">
+                      <!-- Points will be added here dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+                
+                <button id="add-point-btn" class="add-point-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Point
+                </button>
+              </div>
+              
+              <!-- Add Point Form -->
+              <div class="point-input-section" style="display: none;">
+                <div class="section-header">
+                  <h4>Add New Point</h4>
+                  <div class="section-indicator"></div>
+                </div>
+                
+                <div class="coordinates-grid">
+                  <div class="coordinate-input">
+                    <label for="point-northing">Northing</label>
+                    <input type="text" id="point-northing" placeholder="23425.240">
+                  </div>
+                  <div class="coordinate-input">
+                    <label for="point-easting">Easting</label>
+                    <input type="text" id="point-easting" placeholder="23198.620">
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button id="add-point-to-table-btn" class="btn-primary">Add Point</button>
+                  <button id="cancel-point-btn" class="btn-secondary">Cancel</button>
+                </div>
+              </div>
+              
+              <!-- Summary Section -->
+              <div class="section">
+                <div class="section-header">
+                  <h4>Summary</h4>
+                  <div class="section-indicator"></div>
+                </div>
+                
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <span class="summary-label">Points</span>
+                    <span id="total-points" class="summary-value">0</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Distance</span>
+                    <span id="total-distance" class="summary-value">0.00 m</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Area</span>
+                    <span id="total-area" class="summary-value">0.00 m²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bearings-modal-footer">
+              <div class="footer-actions">
+                <button id="load-sample-data-btn" class="btn-secondary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7,10 12,15 17,10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Load Sample
+                </button>
+                <button id="add-survey-to-map-btn" class="btn-primary" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  Add to Map
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="landarea-panel" class="landarea-panel expanded">
+          <button id="landarea-panel-toggle" class="landarea-panel-toggle" aria-label="Toggle Land Area Panel">&#9776;</button>
+          <div class="landarea-panel-content">
+            <div class="landarea-panel-header">
+              <span id="landarea-count">Land Areas: ...</span>
+            </div>
+            <ul id="landarea-list" class="landarea-list">
+              <!-- Land area items will be populated by JS -->
+            </ul>
+          </div>
+        </div>
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.3.0/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.3.0/dist/MarkerCluster.Default.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+        <script src="https://unpkg.com/leaflet-polygon-mask/dist/leaflet-polygon-mask.min.js"></script>
+        <script src="https://unpkg.com/leaflet.markercluster@1.3.0/dist/leaflet.markercluster.js"></script>
+    </main>
+
+    <!-- Cover area-->
+    <main id="profile" class="container">
+        <div style="display: flex; flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
+                <button id="add-technician-btn" class="modal-btn save add-tech-btn"><span class="add-tech-icon">+</span></button>
+            </div>
+        <table class="account-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- User rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+        </div>
+    </main>
+
+    <main id="workspace" class="container section" style="display: none;">
+        <table class="activity-log-table">
+            <thead>
+                <tr>
+                    <th>Operation name</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Time stamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Activity log rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    </div>
+    <div id="logout-confirmation" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+     background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <p>Are you sure you want to log out?</p>
+        <button onclick="logout()">Yes</button>
+        <button onclick="hideLogoutConfirmation()">No</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js" defer></script>
+</body>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart', 'bar'] });
+    google.charts.setOnLoadCallback(drawCharts);
+
+    function drawCharts() {
+        // Pie chart
+        var pieData = google.visualization.arrayToDataTable([
+            ['Status', 'Count'],
+            ['Attendance', 80],
+            ['Absent', 10],
+            ['Early Leave', 10]
+        ]);
+        var pieOptions = {
+            title: '',
+            legend: { position: 'bottom', alignment: 'center', textStyle: { fontSize: 12 } },
+            pieHole: 0.4,
+            colors: ['#4b3fff', '#ffb347', '#ff5252'],
+            chartArea: { left: 10, top: 10, width: '100%', height: '75%' },
+            fontSize: 13
+        };
+        var pieChart = new google.visualization.PieChart(document.getElementById('piechart'));
+        pieChart.draw(pieData, pieOptions);
+
+        // Bar chart (now using ColumnChart for better responsiveness)
+        var barData = google.visualization.arrayToDataTable([
+            ['Subject', "Student's Mark", 'Class Average'],
+            ['Eng', 90, 85],
+            ['Math', 88, 80],
+            ['Sci', 92, 87],
+            ['Hist', 85, 82],
+            ['Geo', 87, 84],
+            ['Bus', 80, 78],
+            ['Art', 95, 90]
+        ]);
+        var barOptions = {
+            legend: { position: 'bottom', alignment: 'center', textStyle: { fontSize: 12 } },
+            colors: ['#4b3fff', '#b3b3b3'],
+            vAxis: { format: 'decimal', minValue: 0, maxValue: 100 },
+            height: 220,
+            chartArea: { left: 40, top: 20, width: '100%', height: '65%' },
+            bar: { groupWidth: "60%" },
+            fontSize: 13
+        };
+        var barChart = new google.visualization.ColumnChart(document.getElementById('barchart_div'));
+        barChart.draw(barData, barOptions);
+    }
+
+    window.addEventListener('resize', drawCharts);
+</script>
+
+<!-- Assign Task Modal -->
+<div id="assign-task-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 1000;">
+  <div class="ll-modal-card" style="background:#fff; padding:0; border-radius:12px; width: min(560px, 92vw); box-shadow:0 12px 32px rgba(0,0,0,.22); border:1px solid #ececec; overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #f1f5f9; background:#ffffff;">
+      <h3 class="ll-modal-title" style="margin:0; font-size:1.06em; color:#111;">Assign Survey Task</h3>
+      <button id="assign-task-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:1.2em;">×</button>
+    </div>
+    <div class="ll-form-grid" style="padding:16px; display:grid; gap:12px 14px; align-items:start;">
+      <div class="ll-field"><label class="ll-label">Land Area ID</label><input class="ll-input" id="task-land-id" type="text" disabled /></div>
+      <div class="ll-field"><label class="ll-label">Technician</label><select class="ll-input" id="task-technician"></select></div>
+      <div class="ll-field"><label class="ll-label">Due Date</label><input class="ll-input" id="task-due-date" type="date" /></div>
+      <div class="ll-field"><label class="ll-label">Priority</label><select class="ll-input" id="task-priority"><option>low</option><option>medium</option><option>high</option></select></div>
+      <div class="ll-field" style="grid-column: 1 / -1;"><label class="ll-label">Notes</label><textarea class="ll-input" id="task-notes" rows="3" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #f1f5f9; background:#fafafa;">
+      <button class="ll-btn" id="assign-task-cancel" style="background:#fff; color:#111; border:1px solid #ddd; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>
+      <button class="ll-btn-primary" id="assign-task-save" style="background:#10b981; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Assign</button>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Edit Land Info Modal -->
+<div id="edit-land-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 1000;">
+  <div class="ll-modal-card" style="background:#fff; padding:0; border-radius:12px; width: min(740px, 96vw); max-height: 88vh; overflow:auto; box-shadow:0 12px 32px rgba(0,0,0,.22); border:1px solid #ececec;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #f1f5f9; background:#ffffff;">
+      <h3 class="ll-modal-title" style="margin:0; font-size:1.06em; color:#111;">Edit Land Information</h3>
+      <button id="edit-land-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:1.2em;">×</button>
+    </div>
+    <input id="edit-land-id" type="hidden" />
+    <div class="ll-form-grid" style="padding:16px; display:grid; gap:12px 14px;">
+      <div class="ll-field"><label class="ll-label">LHID</label><input class="ll-input" id="edit-lhid" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Title Number</label><input class="ll-input" id="edit-title-number" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">LO Name</label><input class="ll-input" id="edit-lo-name" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">MOA</label><input class="ll-input" id="edit-moa" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Barangay Name</label><input class="ll-input" id="edit-barangay-name" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Total Area</label><input class="ll-input" id="edit-total-area" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Survey Number</label><input class="ll-input" id="edit-survey-number" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Lot Number</label><input class="ll-input" id="edit-lot-number" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Current Status</label><input class="ll-input" id="edit-current-status" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Status Description</label><input class="ll-input" id="edit-current-status-desc" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Problem Category</label><input class="ll-input" id="edit-problem-category" type="text" /></div>
+      <div class="ll-field"><label class="ll-label">Sub Category</label><input class="ll-input" id="edit-sub-category" type="text" /></div>
+      <div class="ll-field" style="grid-column: 1 / -1;"><label class="ll-label">Remarks</label><textarea class="ll-input" id="edit-remarks" rows="3" style="resize:vertical;"></textarea></div>
+    </div>
+    <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #f1f5f9; background:#fafafa;">
+      <button class="ll-btn" id="edit-land-cancel" style="background:#fff; color:#111; border:1px solid #ddd; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>
+      <button class="ll-btn-primary" id="edit-land-save" style="background:#0ea5e9; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="edit-user-modal">
+  <div class="modal-content">
+    <button id="close-edit-modal" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5em;cursor:pointer;">&times;</button>
+    <h2>Edit User</h2>
+    <label for="edit-user-firstname">First Name</label>
+    <input id="edit-user-firstname" type="text" />
+    <label for="edit-user-lastname">Last Name</label>
+    <input id="edit-user-lastname" type="text" />
+    <label for="edit-user-email">Email</label>
+    <input id="edit-user-email" type="email" />
+    <!-- Remove Role label and select input from Edit User modal -->
+      <button class="modal-btn save">Save</button>
+      <button class="modal-btn cancel">Cancel</button>
+    <input type="hidden" id="edit-user-id" />
+  </div>
+</div>
+
+<!-- Add Technician Modal -->
+<div id="add-technician-modal">
+  <div class="modal-content">
+    <button id="close-add-technician-modal" class="modal-close-btn">&times;</button>
+    <h2 class="modal-title">Add Technician</h2>
+    <label for="add-tech-firstname">First Name</label>
+    <input id="add-tech-firstname" type="text" class="modal-input" />
+    <label for="add-tech-lastname">Last Name</label>
+    <input id="add-tech-lastname" type="text" class="modal-input" />
+    <label for="add-tech-email">Email</label>
+    <input id="add-tech-email" type="email" class="modal-input" />
+    <button class="modal-btn save add-tech-save-btn" id="save-add-technician">Add</button>
+    <button class="modal-btn cancel add-tech-cancel-btn" id="cancel-add-technician">Cancel</button>
+  </div>
+</div>
+
+<script>
+// Show/hide sidebar on burger click
+document.addEventListener('DOMContentLoaded', function() {
+  var burger = document.getElementById('burger-btn');
+  var nav = document.querySelector('nav');
+  burger.addEventListener('click', function(e) {
+    nav.classList.toggle('open');
+    e.stopPropagation();
+  });
+  // Hide sidebar if window resized out of map
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 900) nav.classList.remove('open');
+  });
+  // Close sidebar when clicking outside
+  document.addEventListener('click', function(e) {
+    if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== burger) {
+      nav.classList.remove('open');
+    }
+  });
+  // Always update dashboard counts when navigating to REPORTS
+  var origNav = window.navigateTo;
+  window.navigateTo = function(sectionId) {
+    if (origNav) origNav(sectionId);
+    if (sectionId === 'home') {
+      if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
+    }
+  };
+});
+// Blur background when logout modal is shown
+function showLogoutConfirmation() {
+  document.getElementById('logout-confirmation').style.display = 'block';
+  document.body.classList.add('blurred');
+}
+function hideLogoutConfirmation() {
+  document.getElementById('logout-confirmation').style.display = 'none';
+  document.body.classList.remove('blurred');
+}
+
+function closeSidebar() {
+  var nav = document.querySelector('nav');
+  nav.classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var backBtn = document.getElementById('sidebar-back-btn');
+  var nav = document.querySelector('nav');
+  // Show back button only when sidebar is open (mobile)
+  var observer = new MutationObserver(function() {
+    if (nav.classList.contains('open')) {
+      backBtn.style.display = 'block';
+    } else {
+      backBtn.style.display = 'none';
+    }
+  });
+  observer.observe(nav, { attributes: true, attributeFilter: ['class'] });
+  backBtn.addEventListener('click', function() {
+    nav.classList.remove('open');
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Hash-based navigation: show the correct section if hash is present
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) {
+    if (typeof navigateTo === 'function') navigateTo(hash);
+  }
+});
+</script>
+
+</html>
