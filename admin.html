@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - LandLord</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Header and burger button copied -->
+    <div class="box">
+        <button id="burger-btn" aria-label="Open navigation">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+        </button>
+        <h1>LANDLORD</h1>
+        <img id="dp" src="https://tse2.mm.bing.net/th?id=OIP.yYUwl3GDU07Q5J5ttyW9fQHaHa&pid=Api&P=0&h=220"
+            alt="User Icon" onclick="showLogoutConfirmation()" style="cursor: pointer;">
+    </div>
+
+    <!-- Sidebar nav so burger works -->
+    <nav>
+        <button id="sidebar-back-btn" aria-label="Close sidebar" style="display:none; margin:14px 0 6px 10px; background:none; border:none; color:#ffd600; font-size:1.2em; font-weight:600; cursor:pointer; padding:4px 10px; border-radius:6px;">
+          <span style="font-size:1.3em;vertical-align:middle;">&#8592;</span> <span style="font-size:0.98em;vertical-align:middle;">Back</span>
+        </button>
+        <ul>
+            <li><a href="#" onclick="navigateTo('profile'); closeSidebar();">USER MANAGEMENT</a></li>
+            <li><a href="#" onclick="navigateTo('workspace'); closeSidebar();">ACTIVITY LOGS</a></li>
+        </ul>
+    </nav>
+
+    <!-- Dummy map container to satisfy shared scripts that may call navigateTo('map') -->
+    <main id="map" class="container" style="display:none;"></main>
+
+    <!-- User Management -->
+    <main id="profile" class="container">
+        <div style="display: flex; flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
+                <button id="add-technician-btn" class="modal-btn save add-tech-btn"><span class="add-tech-icon">+</span></button>
+            </div>
+            <table class="account-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User rows populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Activity Logs -->
+    <main id="workspace" class="container section" style="display: none;">
+        <table class="activity-log-table">
+            <thead>
+                <tr>
+                    <th>Operation name</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Time stamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Activity log rows populated by JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Edit User Modal (moved here) -->
+    <div id="edit-user-modal">
+      <div class="modal-content">
+        <button id="close-edit-modal" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5em;cursor:pointer;">&times;</button>
+        <h2>Edit User</h2>
+        <label for="edit-user-firstname">First Name</label>
+        <input id="edit-user-firstname" type="text" />
+        <label for="edit-user-lastname">Last Name</label>
+        <input id="edit-user-lastname" type="text" />
+        <label for="edit-user-email">Email</label>
+        <input id="edit-user-email" type="email" />
+        <button class="modal-btn save">Save</button>
+        <button class="modal-btn cancel">Cancel</button>
+        <input type="hidden" id="edit-user-id" />
+      </div>
+    </div>
+
+    <!-- Add Technician Modal (moved here) -->
+    <div id="add-technician-modal">
+      <div class="modal-content">
+        <button id="close-add-technician-modal" class="modal-close-btn">&times;</button>
+        <h2 class="modal-title">Add Technician</h2>
+        <label for="add-tech-firstname">First Name</label>
+        <input id="add-tech-firstname" type="text" class="modal-input" />
+        <label for="add-tech-lastname">Last Name</label>
+        <input id="add-tech-lastname" type="text" class="modal-input" />
+        <label for="add-tech-email">Email</label>
+        <input id="add-tech-email" type="email" class="modal-input" />
+        <button class="modal-btn save add-tech-save-btn" id="save-add-technician">Add</button>
+        <button class="modal-btn cancel add-tech-cancel-btn" id="cancel-add-technician">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Logout confirmation used by header avatar -->
+    <div id="logout-confirmation" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+     background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <p>Are you sure you want to log out?</p>
+        <button onclick="logout()">Yes</button>
+        <button onclick="hideLogoutConfirmation()">No</button>
+    </div>
+
+    <!-- Burger/sidebar logic -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var burger = document.getElementById('burger-btn');
+      var nav = document.querySelector('nav');
+      if (burger && nav) {
+        burger.addEventListener('click', function(e) {
+          nav.classList.toggle('open');
+          e.stopPropagation();
+        });
+        window.addEventListener('resize', function() {
+          if (window.innerWidth > 900) nav.classList.remove('open');
+        });
+        document.addEventListener('click', function(e) {
+          if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== burger) {
+            nav.classList.remove('open');
+          }
+        });
+      }
+    });
+    function closeSidebar() {
+      var nav = document.querySelector('nav');
+      if (nav) nav.classList.remove('open');
+    }
+    // Simple section switcher for this page
+    function navigateTo(sectionId) {
+      document.querySelectorAll('main.container').forEach(function(section){ section.style.display = 'none'; });
+      var el = document.getElementById(sectionId);
+      if (el) el.style.display = 'block';
+    }
+    // Hash navigation support
+    document.addEventListener('DOMContentLoaded', function() {
+      var hash = window.location.hash.replace('#', '');
+      if (hash && document.getElementById(hash)) { navigateTo(hash); }
+      else { navigateTo('profile'); }
+    });
+    </script>
+
+    <!-- Supabase and shared logic -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js" defer></script>
+</body>
+</html>
+
+
