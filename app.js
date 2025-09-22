@@ -694,13 +694,17 @@ async function fetchAndRenderLandAreas() {
     return;
   }
   const countEl = document.getElementById('landarea-count');
-  const list = document.getElementById('landarea-list');
-  if (!countEl || !list) {
+  const listLegacy = document.getElementById('landarea-list');
+  const listWorkable = document.getElementById('landarea-list-workable');
+  const listProblem = document.getElementById('landarea-list-problematic');
+  if (!countEl || (!listLegacy && !(listWorkable && listProblem))) {
     // Panel not in DOM (e.g., not on map screen); bail quietly
     return;
   }
   countEl.textContent = `Land Holdings: ${landAreas.length}`;
-  list.innerHTML = '';
+  if (listLegacy) listLegacy.innerHTML = '';
+  if (listWorkable) listWorkable.innerHTML = '';
+  if (listProblem) listProblem.innerHTML = '';
   landAreas.forEach((area, idx) => {
     // Prefer name from land_areas when available
     const ownerName = (area.lo_name && String(area.lo_name).trim()) || `Land ${idx + 1}`;
@@ -779,8 +783,34 @@ async function fetchAndRenderLandAreas() {
         }
       }, 400);
     };
-    list.appendChild(li);
+    if (listWorkable && listProblem) {
+      const status = (landStatus || 'workable').toLowerCase();
+      if (status === 'problematic') listProblem.appendChild(li); else listWorkable.appendChild(li);
+    } else if (listLegacy) {
+      listLegacy.appendChild(li);
+    }
   });
+  // Tabs toggle
+  const tabWorkable = document.getElementById('land-tab-workable');
+  const tabProblem = document.getElementById('land-tab-problematic');
+  if (tabWorkable && tabProblem && listWorkable && listProblem) {
+    const activate = (key) => {
+      if (key === 'workable') {
+        listWorkable.style.display = '';
+        listProblem.style.display = 'none';
+        tabWorkable.classList.add('ll-btn-primary');
+        tabProblem.classList.remove('ll-btn-primary');
+      } else {
+        listWorkable.style.display = 'none';
+        listProblem.style.display = '';
+        tabProblem.classList.add('ll-btn-primary');
+        tabWorkable.classList.remove('ll-btn-primary');
+      }
+    };
+    tabWorkable.onclick = () => activate('workable');
+    tabProblem.onclick = () => activate('problematic');
+    activate('workable');
+  }
 }
 // Panel collapse/expand
 

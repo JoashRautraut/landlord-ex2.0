@@ -552,7 +552,7 @@
           ">&#9776;</button>
           <div class="landarea-panel-content" style="padding: 1rem;">
             <div class="landarea-panel-header" style="
-              margin-bottom: 1rem;
+              margin-bottom: 0.5rem;
               padding-left: 3rem;
             ">
               <h3 style="
@@ -567,14 +567,28 @@
                 color: var(--neutral-500);
               ">Loading...</p>
             </div>
-            <ul id="landarea-list" class="landarea-list" style="
+            <div class="landarea-tabs" style="display:flex; gap:8px; margin: 8px 0 10px 0; padding-left: 3rem;">
+              <button id="land-tab-workable" class="ll-btn" style="padding:6px 10px; border-radius: 999px; border:1px solid var(--neutral-300); background:#fff; color:#111; font-weight:700;">Workable</button>
+              <button id="land-tab-problematic" class="ll-btn" style="padding:6px 10px; border-radius: 999px; border:1px solid var(--neutral-300); background:#fff; color:#111; font-weight:700;">Problematic</button>
+            </div>
+            <ul id="landarea-list-workable" class="landarea-list" style="
               list-style: none;
               padding: 0;
               margin: 0;
-              max-height: calc(100vh - 200px);
+              max-height: calc(100vh - 220px);
               overflow-y: auto;
             ">
-              <!-- Land holdings items will be populated by JS -->
+              <!-- Workable items -->
+            </ul>
+            <ul id="landarea-list-problematic" class="landarea-list" style="
+              list-style: none;
+              padding: 0;
+              margin: 0;
+              max-height: calc(100vh - 220px);
+              overflow-y: auto;
+              display:none;
+            ">
+              <!-- Problematic items -->
             </ul>
           </div>
         </div>
@@ -1038,4 +1052,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+</html>
 </html>
