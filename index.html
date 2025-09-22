@@ -10,7 +10,7 @@
     <div class="gov-header" role="banner">
       <div class="gov-header-inner">
         <div class="gov-brand" aria-label="Department of Agrarian Reform">
-          <div class="gov-logo" aria-hidden="true">DAR</div>
+          <img src="dar_logo.png" alt="DAR logo" class="gov-logo"/>
           <div class="gov-text">
             <div class="gov-supra">Republic of the Philippines</div>
             <div class="gov-agency">Department of Agrarian Reform</div>
@@ -52,6 +52,12 @@
         <div class="gov-footer-meta">For authorized use only</div>
       </div>
     </footer>
+  <!-- DAR splash overlay -->
+  <div id="dar-splash" aria-hidden="true">
+    <div class="logo-wrap">
+      <img src="dar_logo.png" alt="DAR logo">
+    </div>
+  </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_URL = 'https://ozkxzvpiiqhhzbyzetsy.supabase.co';
@@ -117,7 +123,7 @@
 
                 const role = String(user.role || '').toLowerCase();
                 if (role === 'office') {
-                    window.location.href = 'home.html#map';
+                    showDarSplash('home.html#map');
                     return;
                 }
                 if (role === 'technician') {
@@ -135,6 +141,13 @@
                 submitBtn.classList.remove('loading');
             }
         }
+      // Show DAR splash, then navigate
+      function showDarSplash(nextUrl) {
+        const el = document.getElementById('dar-splash');
+        if (!el) { window.location.href = nextUrl; return; }
+        el.style.display = 'flex';
+        setTimeout(function(){ window.location.href = nextUrl; }, 3000);
+      }
       // Show/hide password (accessible)
       document.getElementById('toggle-password').onclick = function() {
         var pwd = document.getElementById('password');
@@ -147,25 +160,26 @@
     </script>
     <style>
       :root {
-        /* Dark theme tuned to the screenshot */
-        --bg: #0f1417;
+        --bg: #0b0d11;
         --text: #e8ece9;
         --muted: #a6b0a9;
-        --card: #1a2125;
-        --border: #2a3530;
-        --primary: #0b6b3a; /* DAR green */
-        --primary-hover: #094f2a;
-        --focus: #ffdd00; /* GOV.UK focus yellow */
-        --header-bg: #0a5b32;
+        --card: rgba(15, 18, 22, 0.7);
+        --border: rgba(255,255,255,0.08);
+        --accent-start: #ff7a18; /* orange */
+        --accent-end: #ff3f00;   /* deep orange */
+        --focus: #ffd84d;        /* warm focus */
+        --header-start: #ff7a18; /* orange */
+        --header-end: #111111;  /* black */
         --header-text: #ffffff;
-        --logo-bg: #084a29;
-        --input-bg: #f8fbf8;
+        --input-bg: #12161b;
+        --input-border: #2a3138;
+        --input-placeholder: #98a2ac;
       }
-      body.login-page { background: linear-gradient(180deg, #122018 0%, var(--bg) 180px); color: var(--text); min-height: 100vh; display:flex; flex-direction:column; }
-      .gov-header { background: var(--header-bg); color: var(--header-text); box-shadow: 0 1px 4px rgba(0,0,0,0.24); position: sticky; top: 0; z-index: 1000; }
-      .gov-header-inner { max-width: 1040px; margin: 0 auto; padding: 12px 16px; }
+      body.login-page { background: radial-gradient(1200px 500px at 70% -10%, rgba(255,122,24,0.25), transparent 60%), linear-gradient(180deg, #1a1a1a 0%, #0b0d11 200px); color: var(--text); min-height: 100vh; display:flex; flex-direction:column; }
+      .gov-header { background: linear-gradient(135deg, var(--header-start), var(--header-end)); color: var(--header-text); box-shadow: 0 1px 6px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 1000; }
+      .gov-header-inner { max-width: 1040px; margin: 0 auto; padding: 10px 16px; }
       .gov-brand { display:flex; align-items:center; gap: 12px; }
-      .gov-logo { width: 42px; height: 42px; border-radius: 50%; background: var(--logo-bg); display:flex; align-items:center; justify-content:center; font-weight: 800; letter-spacing: .5px; }
+      .gov-logo { width: 42px; height: 42px; border-radius: 6px; object-fit: contain; background: #fff; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
       .gov-text { line-height: 1.15; }
       .gov-supra { font-size: .8rem; opacity: .9; }
       .gov-agency { font-size: 1.05rem; font-weight: 700; letter-spacing: .2px; }
@@ -180,15 +194,17 @@
       }
       .signup-container {
         background: var(--card);
-        border-radius: 12px;
-        box-shadow: 0 14px 38px rgba(0,0,0,0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 16px;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.45);
         padding: 36px 30px 30px 30px;
-        max-width: 440px;
+        max-width: 480px;
         width: 100%;
         margin: 22px auto;
         text-align: center;
         border: 1px solid var(--border);
-        border-top: 6px solid var(--primary);
+        border-top: 6px solid var(--accent-start);
       }
       .signup-container h1 { font-size: 1.75rem; margin: 0 0 10px 0; font-weight: 800; letter-spacing: .2px; }
       .page-intro { margin: 0 0 18px 0; color: var(--muted); font-size: .98rem; }
@@ -204,39 +220,41 @@
       .form-group input {
         width: 100%;
         padding: 12px 14px;
-        border-radius: 8px;
-        border: 1px solid #bfc7c2;
+        border-radius: 10px;
+        border: 1px solid var(--input-border);
         background: var(--input-bg);
-        color: #0b0c0c;
-        font-size: 1.08em;
+        color: var(--text);
+        font-size: 1.05em;
         margin-bottom: 14px;
         outline: none;
-        transition: border 0.15s, box-shadow 0.15s;
+        transition: border 0.15s, box-shadow 0.15s, background 0.15s;
       }
       .form-group input:focus {
-        border: 1px solid var(--primary);
-        box-shadow: 0 0 0 3px var(--focus);
-        background: #ffffff;
+        border: 1px solid var(--accent-start);
+        box-shadow: 0 0 0 3px rgba(255,122,24,0.35);
+        background: #0f141a;
       }
-      .form-group input::placeholder { color: #7a837c; }
+      .form-group input::placeholder { color: var(--input-placeholder); }
       /* Make the toggle button align perfectly inside the input */
       #toggle-password { line-height: 1; }
       .signup-btn {
-        background: var(--primary);
+        background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 14px 0;
-        font-size: 1.1em;
-        font-weight: 600;
+        font-size: 1.06em;
+        font-weight: 700;
         cursor: pointer;
         margin-top: 8px;
-        transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
         width: 100%;
         position: relative;
+        box-shadow: 0 8px 24px rgba(255,63,0,0.25);
       }
       .signup-btn:hover {
-        background: var(--primary-hover);
+        filter: brightness(1.05);
+        transform: translateY(-1px);
       }
       .signup-btn:focus { outline: none; box-shadow: 0 0 0 3px var(--focus); }
       .signup-btn.loading .btn-label { opacity: 0; }
@@ -244,13 +262,20 @@
       .btn-spinner { display:none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.6); border-top-color: #fff; border-radius: 50%; animation: spin 0.9s linear infinite; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
       @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
       .secondary-text { margin-top: 14px; color: var(--muted); font-size: .92rem; }
-      .portal-link { color: var(--primary); font-weight: 700; text-decoration: none; }
+      .portal-link { color: var(--accent-start); font-weight: 700; text-decoration: none; }
       .portal-link:hover { text-decoration: underline; }
-      .link-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; padding: 2px 4px; }
+      .link-btn { background: none; border: none; color: var(--accent-start); font-weight: 600; cursor: pointer; padding: 2px 4px; }
       .link-btn:hover { text-decoration: underline; }
-      .gov-footer { background: transparent; color: var(--muted); }
-      .gov-footer-inner { max-width: 1040px; margin: 8px auto 18px; padding: 0 16px; display:flex; align-items:center; justify-content: space-between; font-size: .9rem; }
+      .gov-footer { background: transparent; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.08); }
+      .gov-footer-inner { max-width: 1040px; margin: 8px auto 18px; padding: 12px 16px; display:flex; align-items:center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: .9rem; }
       .gov-footer-meta { opacity: .9; font-size: .85rem; }
+
+      /* DAR splash overlay */
+      #dar-splash { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: radial-gradient(800px 400px at 50% 40%, rgba(255,122,24,0.22), rgba(0,0,0,0.9)); z-index: 2000; }
+      #dar-splash .logo-wrap { display:flex; align-items:center; justify-content:center; width: 160px; height:160px; background:#fff; border-radius: 16px; box-shadow: 0 18px 48px rgba(0,0,0,.45); animation: popIn 600ms cubic-bezier(.2,.8,.2,1) 1; }
+      #dar-splash img { width: 82%; height: 82%; object-fit: contain; animation: pulse 2.4s ease-in-out infinite; }
+      @keyframes popIn { 0% { transform: scale(.85); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+      @keyframes pulse { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.05) } }
     </style>
 </body>
 </html>

@@ -501,7 +501,7 @@
         </div>
         
         <!-- Global Settings floating button (top-right of map) -->
-        <button id="global-settings-btn" aria-label="Open settings" style="
+        <button id="global-settings-btn" aria-label="Open settings" title="Settings" style="
           position: fixed; top: 12px; right: 16px;
           width: 44px; height: 44px; border-radius: 50%;
           background: #ffffff; border: 1px solid #e5e7eb; color: #111;
@@ -509,6 +509,15 @@
           box-shadow: 0 8px 24px rgba(0,0,0,.15);
           cursor: pointer; z-index: 1500; font-size: 20px;
         ">⚙️</button>
+        <!-- Floating Land Holdings toggle (burger) -->
+        <button id="landholdings-toggle-btn" aria-label="Toggle Land Holdings" title="Land Holdings" style="
+          position: fixed; top: 12px; right: 70px;
+          width: 44px; height: 44px; border-radius: 50%;
+          background: #ffffff; border: 1px solid #e5e7eb; color: #111;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 8px 24px rgba(0,0,0,.15);
+          cursor: pointer; z-index: 1500; font-size: 20px;
+        ">&#9776;</button>
         <div id="global-settings-menu" style="
           position: fixed; top: 60px; right: 16px; min-width: 200px; display: none;
           background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); z-index: 1501;
@@ -531,26 +540,10 @@
           z-index: 1000;
           overflow: hidden;
           transition: all 0.3s ease;
+          display: none;
         ">
           
-          <button id="landarea-panel-toggle" class="landarea-panel-toggle" aria-label="Toggle Land Holdings Panel" style="
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1rem;
-            z-index: 10;
-            transition: all 0.2s ease;
-          ">&#9776;</button>
+          
           <div class="landarea-panel-content" style="padding: 1rem;">
             <div class="landarea-panel-header" style="
               margin-bottom: 0.5rem;
@@ -641,6 +634,18 @@
                 menu.style.display = 'none';
                 document.getElementById('logout-confirmation').style.display = 'block';
               };
+            }
+            // Land holdings burger toggle
+            const holdingsBtn = document.getElementById('landholdings-toggle-btn');
+            const panel = document.getElementById('landarea-panel');
+            if (holdingsBtn && panel) {
+              holdingsBtn.addEventListener('click', function(){
+                if (panel.style.display === 'none') {
+                  panel.style.display = 'block';
+                } else {
+                  panel.style.display = 'none';
+                }
+              });
             }
             // Wire logout modal buttons
             const logoutYes = document.getElementById('logout-yes');
@@ -1002,11 +1007,15 @@
     <!-- Activity Logs moved to admin.html -->
 
     </div>
-    <div id="logout-confirmation" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-     background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-        <p>Are you sure you want to log out?</p>
-        <button id="logout-yes">Yes</button>
-        <button id="logout-no">No</button>
+    <div id="logout-confirmation" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+      background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%); color:#fff; padding: 22px 24px; border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.2); z-index: 1600; min-width: 260px;">
+        <h3 style="margin:0 0 8px 0; font-size:1.1rem; font-weight:800; letter-spacing:.2px;">Confirm Logout</h3>
+        <p style="margin:0 0 14px 0; opacity:.9;">Are you sure you want to log out?</p>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button id="logout-no" style="background:#ffffff; color:#1f2937; border: none; padding:8px 14px; border-radius:10px; font-weight:700; cursor:pointer;">Cancel</button>
+          <button id="logout-yes" style="background:#1f2937; color:#fff; border:none; padding:8px 14px; border-radius:10px; font-weight:800; cursor:pointer;">Log out</button>
+        </div>
     </div>
 
     <!-- Account Settings Modal -->
