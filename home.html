@@ -213,33 +213,9 @@
         gap: 0.25rem;
       }
     </style>
-    <!--top area-->
-    <div class="box">
-        <button id="burger-btn" aria-label="Open navigation">
-            <span class="burger-line"></span>
-            <span class="burger-line"></span>
-            <span class="burger-line"></span>
-        </button>
-        <h1>LANDLORD</h1>
-        <img id="dp" src="https://tse2.mm.bing.net/th?id=OIP.yYUwl3GDU07Q5J5ttyW9fQHaHa&pid=Api&P=0&h=220"
-            alt="User Icon" onclick="showLogoutConfirmation()" style="cursor: pointer;">
-    </div>
+    <!-- Header and sidebar removed -->
 
-
-    <nav>
-        <button id="sidebar-back-btn" aria-label="Close sidebar" style="display:none; margin:14px 0 6px 10px; background:none; border:none; color:#ffd600; font-size:1.2em; font-weight:600; cursor:pointer; padding:4px 10px; border-radius:6px;">
-          <span style="font-size:1.3em;vertical-align:middle;">&#8592;</span> <span style="font-size:0.98em;vertical-align:middle;">Back</span>
-        </button>
-        <ul>
-            <li><a href="#" onclick="navigateTo('map'); closeSidebar();">HOME</a></li>
-            <li><a href="#" onclick="navigateTo('home'); closeSidebar();">REPORTS</a></li>
-            <li><a href="#" onclick="navigateTo('profile'); closeSidebar();">USER MANAGEMENT</a></li>
-            <li><a href="#" onclick="navigateTo('workspace'); closeSidebar();">ACTIVITY LOGS</a></li>
-        </ul>
-    </nav>
-    </div>
-
-    <main id="home" class="container">
+    <main id="home" class="container" style="display:none;">
       <!-- ===== Dashboard: Summary Cards ===== -->
       <!-- Shows quick KPIs pulled from Supabase (total users, landowners, land areas). -->
         <div class="dashboard-cards">
@@ -404,6 +380,12 @@
               }
             }
           </style>
+          <!-- Back to Map Button -->
+          <button id="reports-back-btn" aria-label="Back to map" title="Back to map" onclick="navigateTo('map')" style="
+            background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:8px; padding:6px 12px; font-weight:600; cursor:pointer; margin: 0 0 10px 0; display:inline-flex; align-items:center; gap:8px;">
+            <span style="font-size:1.1em; line-height:1">&#8592;</span>
+            <span>Back</span>
+          </button>
           <!-- Reports: Tabs Bar -->
           <!-- Switches between report types; the active tab determines what content renders below. -->
           <div class="report-tabs-bar">
@@ -522,8 +504,17 @@
         <div id="mapid" style="width:100vw;height:100vh;min-height:400px;position:fixed;left:0;top:0;border:0;z-index:0;"></div>
         
         <!-- ADD BEARINGS Button - Bottom Right -->
-        <button id="add-bearing-btn" class="add-bearing-btn" aria-label="Add Bearing">
+        <button id="add-bearing-btn" class="add-bearing-btn" aria-label="Add land holding" title="Add land holding">
           <span class="add-bearing-icon">+</span>
+        </button>
+        <!-- REPORTS Button - Bottom Left -->
+        <button id="open-reports-btn" class="add-bearing-btn" aria-label="View reports" title="View reports" style="left: 32px; right: auto; background:#10b981; box-shadow: 0 4px 16px rgba(16,185,129,0.3);">
+          <span class="add-bearing-icon" style="transform:none; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M11 2a1 1 0 0 1 1-1 12 12 0 1 1-12 12 1 1 0 0 1 1-1h10V2z"></path>
+              <path d="M13 1a1 1 0 0 1 1 1v9h9a1 1 0 0 1 1 1 11 11 0 0 1-11 11 1 1 0 0 1-1-1V1z"></path>
+            </svg>
+          </span>
         </button>
         
         <!-- Bearings Input Modal -->
@@ -1075,9 +1066,7 @@
                 section.style.display = 'none';
             });
             document.getElementById(sectionId).style.display = 'block';
-
             if (sectionId === 'map') {
-                // Reinitialize map when navigating to map section
                 setTimeout(() => {
                     if (window.leafletMap) {
                         window.leafletMap.invalidateSize();
@@ -1087,46 +1076,17 @@
                 }, 100);
             }
         }
+        // Open reports via floating button
+        document.addEventListener('DOMContentLoaded', function(){
+          var btn = document.getElementById('open-reports-btn');
+          if (btn) btn.onclick = function(){ navigateTo('home'); };
+        });
         </script>
     </main>
 
-    <!-- Cover area-->
-    <main id="profile" class="container">
-        <div style="display: flex; flex-direction: column; align-items: stretch;">
-            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
-                <button id="add-technician-btn" class="modal-btn save add-tech-btn"><span class="add-tech-icon">+</span></button>
-            </div>
-        <table class="account-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- User rows will be populated by JavaScript -->
-            </tbody>
-        </table>
-        </div>
-    </main>
+    <!-- User Management moved to admin.html -->
 
-    <main id="workspace" class="container section" style="display: none;">
-        <table class="activity-log-table">
-            <thead>
-                <tr>
-                    <th>Operation name</th>
-                    <th>Status</th>
-                    <th>Time</th>
-                    <th>Time stamp</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Activity log rows will be populated by JavaScript -->
-            </tbody>
-        </table>
-    </main>
+    <!-- Activity Logs moved to admin.html -->
 
     </div>
     <div id="logout-confirmation" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
@@ -1244,68 +1204,11 @@
   </div>
 </div>
 
-<!-- Edit User Modal -->
-<div id="edit-user-modal">
-  <div class="modal-content">
-    <button id="close-edit-modal" style="position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5em;cursor:pointer;">&times;</button>
-    <h2>Edit User</h2>
-    <label for="edit-user-firstname">First Name</label>
-    <input id="edit-user-firstname" type="text" />
-    <label for="edit-user-lastname">Last Name</label>
-    <input id="edit-user-lastname" type="text" />
-    <label for="edit-user-email">Email</label>
-    <input id="edit-user-email" type="email" />
-    <!-- Remove Role label and select input from Edit User modal -->
-      <button class="modal-btn save">Save</button>
-      <button class="modal-btn cancel">Cancel</button>
-    <input type="hidden" id="edit-user-id" />
-  </div>
-</div>
+<!-- Edit User Modal moved to admin.html -->
 
-<!-- Add Technician Modal -->
-<div id="add-technician-modal">
-  <div class="modal-content">
-    <button id="close-add-technician-modal" class="modal-close-btn">&times;</button>
-    <h2 class="modal-title">Add Technician</h2>
-    <label for="add-tech-firstname">First Name</label>
-    <input id="add-tech-firstname" type="text" class="modal-input" />
-    <label for="add-tech-lastname">Last Name</label>
-    <input id="add-tech-lastname" type="text" class="modal-input" />
-    <label for="add-tech-email">Email</label>
-    <input id="add-tech-email" type="email" class="modal-input" />
-    <button class="modal-btn save add-tech-save-btn" id="save-add-technician">Add</button>
-    <button class="modal-btn cancel add-tech-cancel-btn" id="cancel-add-technician">Cancel</button>
-  </div>
-</div>
+<!-- Add Technician Modal moved to admin.html -->
 
 <script>
-// Show/hide sidebar on burger click
-document.addEventListener('DOMContentLoaded', function() {
-  var burger = document.getElementById('burger-btn');
-  var nav = document.querySelector('nav');
-  burger.addEventListener('click', function(e) {
-    nav.classList.toggle('open');
-    e.stopPropagation();
-  });
-  // Hide sidebar if window resized out of map
-  window.addEventListener('resize', function() {
-    if (window.innerWidth > 900) nav.classList.remove('open');
-  });
-  // Close sidebar when clicking outside
-  document.addEventListener('click', function(e) {
-    if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== burger) {
-      nav.classList.remove('open');
-    }
-  });
-  // Always update dashboard counts when navigating to REPORTS
-  var origNav = window.navigateTo;
-  window.navigateTo = function(sectionId) {
-    if (origNav) origNav(sectionId);
-    if (sectionId === 'home') {
-      if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
-    }
-  };
-});
 // Blur background when logout modal is shown
 function showLogoutConfirmation() {
   document.getElementById('logout-confirmation').style.display = 'block';
@@ -1315,34 +1218,13 @@ function hideLogoutConfirmation() {
   document.getElementById('logout-confirmation').style.display = 'none';
   document.body.classList.remove('blurred');
 }
-
-function closeSidebar() {
-  var nav = document.querySelector('nav');
-  nav.classList.remove('open');
-}
-
+// Hash-based navigation: show the correct section if hash is present
 document.addEventListener('DOMContentLoaded', function() {
-  var backBtn = document.getElementById('sidebar-back-btn');
-  var nav = document.querySelector('nav');
-  // Show back button only when sidebar is open (mobile)
-  var observer = new MutationObserver(function() {
-    if (nav.classList.contains('open')) {
-      backBtn.style.display = 'block';
-    } else {
-      backBtn.style.display = 'none';
-    }
-  });
-  observer.observe(nav, { attributes: true, attributeFilter: ['class'] });
-  backBtn.addEventListener('click', function() {
-    nav.classList.remove('open');
-  });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Hash-based navigation: show the correct section if hash is present
   var hash = window.location.hash.replace('#', '');
   if (hash && document.getElementById(hash)) {
     if (typeof navigateTo === 'function') navigateTo(hash);
+  } else {
+    if (typeof navigateTo === 'function') navigateTo('map');
   }
 });
 </script>

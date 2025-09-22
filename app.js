@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   fetchAndRenderUsers();
   updateDashboardCounts();
-  // Event delegation for action buttons
-  document.querySelector('#profile .account-table tbody').addEventListener('click', async function(e) {
+  // Event delegation for action buttons (guard if table exists on this page)
+  const usersTbodyEl = document.querySelector('#profile .account-table tbody');
+  if (usersTbodyEl) usersTbodyEl.addEventListener('click', async function(e) {
     // Deactivate/Activate
     if (e.target.closest('.deactivate')) {
       const btn = e.target.closest('.deactivate');

