@@ -218,285 +218,143 @@
     <main id="home" class="container" style="display:none;">
       <!-- ===== Dashboard: Summary Cards ===== -->
       <!-- Shows quick KPIs pulled from Supabase (total users, landowners, land areas). -->
-        <div class="dashboard-cards">
-            <div class="dashboard-card attendance">
-                <div class="card-title"><span class="dot green"></span> Total Users</div>
-                <div class="card-value" id="total-users">...</div>
-                <div class="card-meta">Last attend: 02 March, 2020<br>Reason: Torchbearer</div>
-            </div>
-            <div class="dashboard-card fee-due">
-                <div class="card-title"><span class="dot yellow"></span> Total Landowners<span class="send-notice"></span></div>
-                <div class="card-value" id="total-landowners">...</div>
-                <div class="card-meta">Last paid: 02 March, 2020<br>Method: Online</div>
-            </div>
-            <div class="dashboard-card exam-marks">
-                <div class="card-title"><span class="dot blue"></span> Total Land areas</div>
-                <div class="card-value" id="total-landareas">...</div>
-                <div class="card-meta">Last exam: 1st Semester<br>Top Marks: English (98%)</div>
-            </div>
-        </div>
-        <!-- ===== Dashboard: Charts ===== -->
-        <!-- Static demo charts (Pie/Bar via Google Charts) for visual summaries. -->
-        <div class="dashboard-charts">
-            <div class="chart-section">
-                <h3>Recent Exam Report</h3>
-                <div id="barchart_div" style="width: 400px; height: 300px;"></div>
-            </div>
-            <div class="chart-section">
-                <h3>Attendance Summary</h3>
-                <div id="piechart" style="width: 400px; height: 300px;"></div>
-            </div>
-        </div>
+        
         <!-- ===== Reports: Container ===== -->
         <!-- Parent wrapper for the tabbed reporting UI and its controls. -->
         <section id="reports" style="margin-top:32px;">
-          <!-- Reports: Styles (scoped to reports section) -->
-          <!-- Styles only affect elements inside the Reports area (tabs, filters, table). -->
           <style>
-            .report-tabs-bar {
-              display: flex;
-              gap: 0;
-              background: #202124;
-              border-radius: 10px 10px 0 0;
-              overflow: hidden;
-              box-shadow: 0 2px 8px #0002;
-              margin-bottom: 0;
-            }
-            .report-tab-btn {
-              flex: 1;
-              background: none;
-              border: none;
-              color: #bdbdbd;
-              font-size: 1.08em;
-              font-weight: 600;
-              padding: 14px 0 12px 0;
-              cursor: pointer;
-              transition: background 0.18s, color 0.18s, border-bottom 0.18s, box-shadow 0.18s, transform 0.18s;
-              border-bottom: 3px solid transparent;
-              outline: none;
-              position: relative;
-            }
-            .report-tab-btn.active, .report-tab-btn:focus {
-              color: #ffd600;
-              background: #23272f;
-              border-bottom: 3px solid #ffd600;
-              z-index: 2;
-              box-shadow: 0 2px 8px #ffd60044;
-              animation: tabPop 0.3s cubic-bezier(.4,1.4,.6,1) 1;
-            }
-            .report-tab-btn:hover:not(.active) {
-              background: #23272f;
-              color: #fff;
-              transform: translateY(-2px) scale(1.04);
-              box-shadow: 0 2px 8px #ffd60022;
-            }
-            @keyframes tabPop {
-              0% { transform: scale(0.96); box-shadow: 0 0 0 #ffd60000; }
-              60% { transform: scale(1.06); box-shadow: 0 4px 16px #ffd60044; }
-              100% { transform: scale(1); box-shadow: 0 2px 8px #ffd60044; }
-            }
-            #report-filters {
-              background: #23272f;
-              border-radius: 0 0 10px 10px;
-              box-shadow: 0 2px 8px #0002;
-              padding: 14px 18px 10px 18px;
-              margin-bottom: 0;
-              display: flex;
-              gap: 16px;
-              align-items: center;
-              flex-wrap: wrap;
-              opacity: 0;
-              animation: fadeIn 0.7s 0.1s forwards;
-            }
-            #report-filters label, #report-filters input[type='date'], #report-filters button {
-              transition: color 0.18s, background 0.18s, border 0.18s, box-shadow 0.18s, transform 0.18s;
-            }
-            #report-filters button:hover {
-              background: #ffd600 !important;
-              color: #23272f !important;
-              transform: scale(1.06);
-              box-shadow: 0 2px 8px #ffd60044;
-            }
-            #report-content {
-              background: #23272f;
-              border-radius: 0 0 12px 12px;
-              box-shadow: 0 4px 24px #000a;
-              padding: 32px 24px 28px 24px;
-              min-height: 220px;
-              color: #fff;
-              margin-top: 0;
-              transition: box-shadow 0.18s, background 0.18s, padding 0.18s;
-              opacity: 0;
-              transform: translateY(24px);
-              animation: fadeInUp 0.7s 0.2s forwards;
-            }
-            @keyframes fadeIn {
-              from { opacity: 0; }
-              to { opacity: 1; }
-            }
-            @keyframes fadeInUp {
-              0% { opacity: 0; transform: translateY(24px); }
-              100% { opacity: 1; transform: translateY(0); }
-            }
-            #report-content table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 16px;
-              background: none;
-              opacity: 0;
-              animation: fadeIn 0.7s 0.4s forwards;
-            }
-            #report-content th, #report-content td {
-              padding: 10px 12px;
-              border-bottom: 1px solid #292b32;
-              text-align: left;
-              font-size: 1em;
-              transition: background 0.18s, color 0.18s;
-            }
-            #report-content th {
-              background: #202124;
-              color: #ffd600;
-              font-weight: 700;
-              animation: fadeIn 0.7s 0.5s forwards;
-            }
-            #report-content tr {
-              transition: background 0.18s;
-            }
-            #report-content tr:hover td {
-              background: #292b32;
-              color: #ffd600;
-            }
-            #report-content tr:last-child td {
-              border-bottom: none;
-            }
-            @media (max-width: 700px) {
-              #report-filters, .report-tabs-bar {
-                flex-direction: column;
-                gap: 8px;
-                padding: 10px 8px;
-              }
-              #report-content {
-                padding: 18px 6px;
-              }
-            }
+            .reports-kpis { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin: 0 0 14px 0; }
+            .kpi-card { background: linear-gradient(180deg, #23272f 0%, #1f242b 100%); border:1px solid #2e3742; border-radius:12px; padding:14px 16px; color:#e9eef3; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+            .kpi-label { color:#bdbdbd; font-size:.9em; margin-bottom:6px; }
+            .kpi-value { font-size:1.9em; font-weight:900; letter-spacing:.2px; }
+            .reports-grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:12px; }
+            .panel { background: linear-gradient(180deg, #23272f 0%, #1e2228 100%); border:1px solid #2b3440; border-radius:12px; padding:14px 16px; color:#e9eef3; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+            .panel-header { font-weight:800; margin-bottom:8px; color:#ffd84d; letter-spacing:.2px; }
+            .panel table { width:100%; border-collapse: collapse; }
+            .panel th, .panel td { text-align:left; padding:12px 12px; border-bottom:1px solid #313947; font-size:.98em; }
+            .panel th { color:#ffd84d; background:#1b1f25; position:sticky; top:0; }
+            .tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.8em; font-weight:700; }
+            .tag.workable { background:#123c2a; color:#a7f3d0; border:1px solid #0ea36a; }
+            .tag.problematic { background:#452325; color:#fecaca; border:1px solid #e11d48; }
+            @media (max-width: 900px) { .reports-grid { grid-template-columns: 1fr; } }
           </style>
-          <!-- Back to Map Button -->
           <button id="reports-back-btn" aria-label="Back to map" title="Back to map" onclick="navigateTo('map')" style="
             background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:8px; padding:6px 12px; font-weight:600; cursor:pointer; margin: 0 0 10px 0; display:inline-flex; align-items:center; gap:8px;">
             <span style="font-size:1.1em; line-height:1">&#8592;</span>
             <span>Back</span>
           </button>
-          <!-- Reports: Tabs Bar -->
-          <!-- Switches between report types; the active tab determines what content renders below. -->
-          <div class="report-tabs-bar">
-            <button class="report-tab-btn" data-tab="user-activity">User Activity</button>
-            <button class="report-tab-btn" data-tab="todo-completion">To-Do Completion</button>
-            <button class="report-tab-btn" data-tab="landowner-summary">Landowner Summary</button>
-            <button class="report-tab-btn active" data-tab="map-records">Map Records</button>
+          <div class="reports-kpis">
+            <div class="kpi-card"><div class="kpi-label">Total Land Areas</div><div class="kpi-value" id="kpi-total-areas">...</div></div>
+            <div class="kpi-card"><div class="kpi-label">Workable</div><div class="kpi-value" id="kpi-workable">...</div></div>
+            <div class="kpi-card"><div class="kpi-label">Problematic</div><div class="kpi-value" id="kpi-problematic">...</div></div>
+            <div class="kpi-card"><div class="kpi-label">Total Area (m²)</div><div class="kpi-value" id="kpi-total-area">...</div></div>
           </div>
-          <!-- Reports: Filters Row -->
-          <!-- Date range and actions (Apply/Export/Print). Apply/export are placeholders you can wire later. -->
-          <div id="report-filters">
-            <label>From: <input type="date" id="report-from-date"></label>
-            <label>To: <input type="date" id="report-to-date"></label>
-            <button id="apply-report-filters" style="background:#ffd600; color:#23272f; border:none; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Apply</button>
-            <button id="export-report-csv" style="background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Export CSV</button>
-            <button id="print-report" style="background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:7px; padding:6px 16px; font-weight:600; cursor:pointer;">Print</button>
+          <div class="reports-grid">
+            <div class="panel">
+              <div class="panel-header">Map Records (recent)</div>
+              <table id="rep-map-records"><thead><tr>
+                <th>ID</th><th>LO Name</th><th>Barangay</th><th>Status</th><th>Area (m²)</th><th>Created</th>
+              </tr></thead><tbody><tr><td colspan="6">Loading...</td></tr></tbody></table>
+            </div>
+            <div class="panel">
+              <div class="panel-header">Land Status by Barangay</div>
+              <table id="rep-status-brgy"><thead><tr>
+                <th>Barangay</th><th>Workable</th><th>Problematic</th><th>Total Areas</th>
+              </tr></thead><tbody><tr><td colspan="4">Loading...</td></tr></tbody></table>
+            </div>
+            <div class="panel" style="grid-column: 1 / -1;">
+              <div class="panel-header">Recent Activity</div>
+              <table id="rep-activity"><thead><tr>
+                <th>Operation</th><th>Status</th><th>Time</th><th>Timestamp</th>
+              </tr></thead><tbody><tr><td colspan="4">Loading...</td></tr></tbody></table>
+            </div>
           </div>
-          <!-- Reports: Dynamic Content Area -->
-          <!-- Populated by JS based on the selected tab. Map Records is filled from Supabase. -->
-          <div id="report-content"></div>
+          <script>
+            (function(){
+              function waitForSupabase(retries=20){
+                return new Promise((resolve, reject)=>{
+                  (function poll(i){
+                    const sb = window.supabaseClient || window.supabase;
+                    if (sb && sb.from) return resolve(sb);
+                    if (i<=0) return reject(new Error('Supabase client not ready'));
+                    setTimeout(()=>poll(i-1), 150);
+                  })(retries);
+                });
+              }
+              function n(v){ try{ return (typeof v==='number'?v:Number(v)).toLocaleString(); }catch{return String(v||'0');} }
+              async function loadReports(){
+                const sb = await waitForSupabase();
+                try {
+                  const { data: areas, error: areaErr } = await sb.from('land_areas').select('id, lo_name, barangay_name, land_status, total_area, created_at').order('created_at', { ascending: false });
+                  if (areaErr) throw areaErr;
+                  const total = (areas||[]).length;
+                  let workable=0, problematic=0, totalArea=0;
+                  const brgy = {};
+                  (areas||[]).forEach(a=>{
+                    const s = (a.land_status||'workable').toLowerCase();
+                    if (s==='problematic') problematic++; else workable++;
+                    const areaNum = typeof a.total_area==='number'?a.total_area:parseFloat(a.total_area);
+                    if (!isNaN(areaNum)) totalArea += areaNum;
+                    const b = (a.barangay_name||'Unspecified').trim();
+                    if (!brgy[b]) brgy[b] = { workable:0, problematic:0, total:0 };
+                    brgy[b][s==='problematic'?'problematic':'workable']++;
+                    brgy[b].total++;
+                  });
+                  document.getElementById('kpi-total-areas').textContent = n(total);
+                  document.getElementById('kpi-workable').textContent = n(workable);
+                  document.getElementById('kpi-problematic').textContent = n(problematic);
+                  document.getElementById('kpi-total-area').textContent = n(Number(totalArea.toFixed(2)));
+                  // Map records
+                  const mapTbody = document.querySelector('#rep-map-records tbody');
+                  mapTbody.innerHTML = (areas||[]).slice(0,25).map(row=>{
+                    const tag = (row.land_status||'workable').toLowerCase();
+                    const tagCls = tag==='problematic'?'problematic':'workable';
+                    const areaNum = typeof row.total_area==='number'?row.total_area:parseFloat(row.total_area);
+                    const created = row.created_at ? new Date(row.created_at).toLocaleString() : '';
+                    return `<tr>
+                      <td>${row.id}</td>
+                      <td>${row.lo_name||''}</td>
+                      <td>${row.barangay_name||''}</td>
+                      <td><span class="tag ${tagCls}">${tag}</span></td>
+                      <td>${isNaN(areaNum)?'':n(Number(areaNum.toFixed(2)))}</td>
+                      <td>${created}</td>
+                    </tr>`;
+                  }).join('') || '<tr><td colspan="6">No records found.</td></tr>';
+                  // Barangay table
+                  const brgyRows = Object.keys(brgy).sort().map(k=>{
+                    const r = brgy[k];
+                    return `<tr><td>${k}</td><td>${n(r.workable)}</td><td>${n(r.problematic)}</td><td>${n(r.total)}</td></tr>`;
+                  }).join('');
+                  document.querySelector('#rep-status-brgy tbody').innerHTML = brgyRows || '<tr><td colspan="4">No data</td></tr>';
+                } catch(e) {
+                  document.querySelector('#rep-map-records tbody').innerHTML = `<tr><td colspan="6">Failed to load: ${e.message||'Error'}</td></tr>`;
+                  document.querySelector('#rep-status-brgy tbody').innerHTML = `<tr><td colspan="4">Failed to load</td></tr>`;
+                }
+                // Activity logs
+                try {
+                  const { data: logs, error: logErr } = await sb.from('activity_logs').select('*').order('timestamp', { ascending:false }).limit(100);
+                  if (logErr) throw logErr;
+                  const tbody = document.querySelector('#rep-activity tbody');
+                  tbody.innerHTML = (logs||[]).map(l=>`<tr>
+                    <td>${l.operation_name||''}</td>
+                    <td><span class="log-status succeeded">${l.status||''}</span></td>
+                    <td>${l.time||''}</td>
+                    <td>${l.timestamp?new Date(l.timestamp).toLocaleString():''}</td>
+                  </tr>`).join('') || '<tr><td colspan="4">No logs found.</td></tr>';
+                } catch(e) {
+                  document.querySelector('#rep-activity tbody').innerHTML = `<tr><td colspan="4">Failed to load</td></tr>`;
+                }
+              }
+              // Hook into navigation
+              const origNav = window.navigateTo;
+              window.navigateTo = function(id){ if (origNav) origNav(id); if (id==='home') loadReports(); };
+              // If already visible (rare), load now
+              if (document.getElementById('home') && getComputedStyle(document.getElementById('home')).display !== 'none') {
+                loadReports();
+              }
+            })();
+          </script>
         </section>
-        <!-- Reports: Logic -->
-        <!-- Handles tab switching, content rendering, and triggers Map Records data loading in app.js. -->
-        <script>
-          // Tabbed Reports UI
-          const reportTabs = document.querySelectorAll('.report-tab-btn');
-          const reportContent = document.getElementById('report-content');
-          let currentTab = 'map-records';
-          function setActiveTab(tab) {
-            reportTabs.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.report-tab-btn[data-tab='${tab}']`).classList.add('active');
-          }
-          function renderReport(tab) {
-            setActiveTab(tab);
-            // Animate report content area
-            reportContent.style.opacity = 0;
-            reportContent.style.transform = 'translateY(24px)';
-            setTimeout(() => {
-              reportContent.style.opacity = 1;
-              reportContent.style.transform = 'translateY(0)';
-            }, 50);
-            if (tab === 'user-activity') {
-              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>User Activity Report</h3>
-                <table>
-                  <thead><tr><th>User</th><th>Action</th><th>Date</th></tr></thead>
-                  <tbody>
-                    <tr><td>Alice</td><td>Logged in</td><td>2024-06-01</td></tr>
-                    <tr><td>Bob</td><td>Added note</td><td>2024-06-01</td></tr>
-                    <tr><td>Charlie</td><td>Completed to-do</td><td>2024-06-02</td></tr>
-                  </tbody>
-                </table>`;
-            } else if (tab === 'todo-completion') {
-              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>To-Do Completion Report</h3>
-                <table>
-                  <thead><tr><th>User</th><th>Task</th><th>Status</th><th>Date</th></tr></thead>
-                  <tbody>
-                    <tr><td>Alice</td><td>Pay rent</td><td>Completed</td><td>2024-06-01</td></tr>
-                    <tr><td>Bob</td><td>Update profile</td><td>Pending</td><td>2024-06-01</td></tr>
-                    <tr><td>Charlie</td><td>Submit report</td><td>Completed</td><td>2024-06-02</td></tr>
-                  </tbody>
-                </table>`;
-            } else if (tab === 'landowner-summary') {
-              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>Landowner Summary</h3>
-                <table>
-                  <thead><tr><th>Landowner</th><th>Properties</th><th>Last Payment</th></tr></thead>
-                  <tbody>
-                    <tr><td>Alice</td><td>3</td><td>2024-05-28</td></tr>
-                    <tr><td>Bob</td><td>1</td><td>2024-05-30</td></tr>
-                    <tr><td>Charlie</td><td>2</td><td>2024-06-01</td></tr>
-                  </tbody>
-                </table>`;
-            } else if (tab === 'map-records') {
-              // Placeholder; real data rendered by app.js once Supabase is loaded
-              reportContent.innerHTML = `<h3 style='color:#ffd600; margin-bottom:10px;'>Map Records</h3>
-                <table id="map-records-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>LO Name</th>
-                      <th>Barangay</th>
-                      <th>Status</th>
-                      <th>Total Area (m²)</th>
-                      <th># Points</th>
-                      <th>Created</th>
-                    </tr>
-                  </thead>
-                  <tbody><tr><td colspan="7">Loading...</td></tr></tbody>
-                </table>`;
-              // Signal to app.js that the Map Records tab is now visible
-              document.dispatchEvent(new CustomEvent('map-records-tab-open'));
-            }
-          }
-          reportTabs.forEach(btn => {
-            btn.onclick = () => {
-              currentTab = btn.getAttribute('data-tab');
-              renderReport(currentTab);
-            };
-          });
-          // Initial render
-          renderReport(currentTab);
-          // Filter and Export (mock logic)
-          document.getElementById('apply-report-filters').onclick = () => {
-            alert('Filters applied (demo only).');
-          };
-          document.getElementById('export-report-csv').onclick = () => {
-            alert('CSV exported (demo only).');
-          };
-          document.getElementById('print-report').onclick = () => {
-            window.print();
-          };
-        </script>
         <!-- ===== End Reports ===== -->
     </main>
 
@@ -1100,56 +958,7 @@
     <script src="app.js" defer></script>
 </body>
 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-    google.charts.load('current', { 'packages': ['corechart', 'bar'] });
-    google.charts.setOnLoadCallback(drawCharts);
-
-    function drawCharts() {
-        // Pie chart
-        var pieData = google.visualization.arrayToDataTable([
-            ['Status', 'Count'],
-            ['Attendance', 80],
-            ['Absent', 10],
-            ['Early Leave', 10]
-        ]);
-        var pieOptions = {
-            title: '',
-            legend: { position: 'bottom', alignment: 'center', textStyle: { fontSize: 12 } },
-            pieHole: 0.4,
-            colors: ['#4b3fff', '#ffb347', '#ff5252'],
-            chartArea: { left: 10, top: 10, width: '100%', height: '75%' },
-            fontSize: 13
-        };
-        var pieChart = new google.visualization.PieChart(document.getElementById('piechart'));
-        pieChart.draw(pieData, pieOptions);
-
-        // Bar chart (now using ColumnChart for better responsiveness)
-        var barData = google.visualization.arrayToDataTable([
-            ['Subject', "Student's Mark", 'Class Average'],
-            ['Eng', 90, 85],
-            ['Math', 88, 80],
-            ['Sci', 92, 87],
-            ['Hist', 85, 82],
-            ['Geo', 87, 84],
-            ['Bus', 80, 78],
-            ['Art', 95, 90]
-        ]);
-        var barOptions = {
-            legend: { position: 'bottom', alignment: 'center', textStyle: { fontSize: 12 } },
-            colors: ['#4b3fff', '#b3b3b3'],
-            vAxis: { format: 'decimal', minValue: 0, maxValue: 100 },
-            height: 220,
-            chartArea: { left: 40, top: 20, width: '100%', height: '65%' },
-            bar: { groupWidth: "60%" },
-            fontSize: 13
-        };
-        var barChart = new google.visualization.ColumnChart(document.getElementById('barchart_div'));
-        barChart.draw(barData, barOptions);
-    }
-
-    window.addEventListener('resize', drawCharts);
-</script>
+ 
 
 <!-- Assign Task Modal -->
 <div id="assign-task-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 1000;">

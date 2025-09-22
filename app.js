@@ -5,6 +5,8 @@ const SUPABASE_URL = 'https://ozkxzvpiiqhhzbyzetsy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96a3h6dnBpaXFoaHpieXpldHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjcwMTksImV4cCI6MjA2NjYwMzAxOX0.ra2xvmu97bESlkHkwvPIKjbbccJbQYyHbbFzbJXa4sU';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Expose globally so inline scripts (e.g., in home.html) can use the same client
+window.supabaseClient = supabase;
 
 document.addEventListener('DOMContentLoaded', () => {
     const title_el = document.getElementById('title');
@@ -389,52 +391,17 @@ function initMap() {
     }
   });
 
-  // Strict bounds enforcement for Manolo Fortich only
-  map.on('drag', function() { 
-    map.panInsideBounds(MANOLO_FORTICH_BOUNDS, { animate: false }); 
-  });
-  
-  // Prevent zooming out beyond bounds
-  map.on('zoomend', function() {
-    if (!MANOLO_FORTICH_BOUNDS.contains(map.getBounds())) {
-      map.fitBounds(MANOLO_FORTICH_BOUNDS);
-    }
-  });
-  
-  // Additional enforcement on moveend
-  map.on('moveend', function() {
-    if (!MANOLO_FORTICH_BOUNDS.contains(map.getBounds())) {
-      map.fitBounds(MANOLO_FORTICH_BOUNDS);
-    }
-  });
-  
-  // Force bounds after map is ready and continuously enforce
+  // Set soft bounds once without aggressive re-enforcement
   setTimeout(() => {
     map.setMaxBounds(MANOLO_FORTICH_BOUNDS);
     map.fitBounds(MANOLO_FORTICH_BOUNDS);
-    
-    // Continuous bounds enforcement
-    const enforceBounds = () => {
-      if (window.leafletMap && !MANOLO_FORTICH_BOUNDS.contains(window.leafletMap.getBounds())) {
-        window.leafletMap.setMaxBounds(MANOLO_FORTICH_BOUNDS);
-        window.leafletMap.fitBounds(MANOLO_FORTICH_BOUNDS);
+    // Keyboard shortcut remains available
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'm') {
+        e.preventDefault();
+        window.forceMapToManoloFortich();
       }
-    };
-    
-    // Enforce bounds every 500ms
-    setInterval(enforceBounds, 500);
-    
-  // Also enforce on any map interaction
-  map.on('viewreset', enforceBounds);
-  map.on('load', enforceBounds);
-  
-  // Add keyboard shortcut to force bounds (Ctrl+M)
-  document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 'm') {
-      e.preventDefault();
-      window.forceMapToManoloFortich();
-    }
-  });
+    });
   }, 100);
   // Google Satellite base layer
   L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -642,23 +609,18 @@ window.navigateTo = function(sectionId) {
     if (typeof fetchAndRenderActivityLogs === 'function') fetchAndRenderActivityLogs();
   }
   if (sectionId === 'map') {
-    // Force reflow to ensure #mapid is visible
     const mapMain = document.getElementById('map');
-    mapMain.style.display = 'block';
-    // Force reflow
-    void mapMain.offsetWidth;
-    requestAnimationFrame(() => {
-      initMap();
-      // Ensure bounds are enforced after map initialization
-      setTimeout(() => {
-        window.forceMapToManoloFortich();
-      }, 200);
-      
-      // Also enforce after a longer delay to catch any late initialization
-      setTimeout(() => {
-        window.forceMapToManoloFortich();
-      }, 1000);
-    });
+    if (mapMain) mapMain.style.display = 'block';
+    // Initialize map only once
+    if (!window.leafletMap) {
+      requestAnimationFrame(() => {
+        initMap();
+        setTimeout(() => { window.forceMapToManoloFortich(); }, 200);
+      });
+    } else {
+      // Just invalidate size when showing again
+      setTimeout(() => { window.leafletMap && window.leafletMap.invalidateSize(); }, 100);
+    }
   }
 };
 
