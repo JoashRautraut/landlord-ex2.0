@@ -1403,10 +1403,13 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
+    color: #fff;
+    padding: 22px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255,255,255,0.2);
+    min-width: 260px;
 }
 
 /* Burger button style (dot + bar) */
@@ -1852,24 +1855,25 @@ body.blurred > *:not(#logout-confirmation) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 28px 32px 24px 32px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-bottom: 1px solid #e9ecef;
+  padding: 24px 28px 20px 28px;
+  background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
 }
 
 .header-content h3 {
   margin: 0 0 4px 0;
-  color: #1a1a1a;
+  color: #ffffff;
   font-size: 1.5em;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.5px;
 }
 
 .header-subtitle {
   margin: 0;
-  color: #6c757d;
+  color: rgba(255,255,255,0.9);
   font-size: 0.95em;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .close-modal-btn {
@@ -2082,14 +2086,14 @@ body.blurred > *:not(#logout-confirmation) {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffd600 0%, #ffed4e 100%);
-  color: #1a1a1a;
-  box-shadow: 0 4px 12px rgba(255, 214, 0, 0.2);
+  background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 123, 24, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 214, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 63, 0, 0.35);
 }
 
 .btn-primary:disabled {
@@ -2101,9 +2105,9 @@ body.blurred > *:not(#logout-confirmation) {
 }
 
 .btn-secondary {
-  background: #f8f9fa;
-  color: #495057;
-  border: 2px solid #e9ecef;
+  background: #ffffff;
+  color: #1f2937;
+  border: 2px solid #ff7a18;
 }
 
 .btn-secondary:hover {
