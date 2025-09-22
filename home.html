@@ -249,7 +249,6 @@
             <div class="kpi-card"><div class="kpi-label">Total Land Areas</div><div class="kpi-value" id="kpi-total-areas">...</div></div>
             <div class="kpi-card"><div class="kpi-label">Workable</div><div class="kpi-value" id="kpi-workable">...</div></div>
             <div class="kpi-card"><div class="kpi-label">Problematic</div><div class="kpi-value" id="kpi-problematic">...</div></div>
-            <div class="kpi-card"><div class="kpi-label">Total Area (m²)</div><div class="kpi-value" id="kpi-total-area">...</div></div>
           </div>
           <div class="reports-grid">
             <div class="panel">
@@ -300,7 +299,7 @@
                   document.getElementById('kpi-total-areas').textContent = n(total);
                   document.getElementById('kpi-workable').textContent = n(workable);
                   document.getElementById('kpi-problematic').textContent = n(problematic);
-                  document.getElementById('kpi-total-area').textContent = n(Number(totalArea.toFixed(2)));
+                  // Removed Total Area KPI
                   // Map records
                   const mapTbody = document.querySelector('#rep-map-records tbody');
                   mapTbody.innerHTML = (areas||[]).slice(0,25).map(row=>{
@@ -501,6 +500,24 @@
           </div>
         </div>
         
+        <!-- Global Settings floating button (top-right of map) -->
+        <button id="global-settings-btn" aria-label="Open settings" style="
+          position: fixed; top: 12px; right: 16px;
+          width: 44px; height: 44px; border-radius: 50%;
+          background: #ffffff; border: 1px solid #e5e7eb; color: #111;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 8px 24px rgba(0,0,0,.15);
+          cursor: pointer; z-index: 1500; font-size: 20px;
+        ">⚙️</button>
+        <div id="global-settings-menu" style="
+          position: fixed; top: 60px; right: 16px; min-width: 200px; display: none;
+          background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); z-index: 1501;
+          overflow: hidden;
+        ">
+          <button id="account-settings-item" style="width:100%; text-align:left; background:none; border:none; padding:12px 14px; font-weight:600; cursor:pointer;">Account Settings</button>
+          <button id="logout-item" style="width:100%; text-align:left; background:none; border:none; padding:12px 14px; font-weight:700; color:#b91c1c; cursor:pointer;">Log out</button>
+        </div>
+
         <div id="landarea-panel" class="landarea-panel expanded" style="
           position: fixed;
           top: 80px;
@@ -515,6 +532,7 @@
           overflow: hidden;
           transition: all 0.3s ease;
         ">
+          
           <button id="landarea-panel-toggle" class="landarea-panel-toggle" aria-label="Toggle Land Holdings Panel" style="
             position: absolute;
             top: 1rem;
@@ -537,18 +555,26 @@
             <div class="landarea-panel-header" style="
               margin-bottom: 1rem;
               padding-left: 3rem;
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: .5rem;
             ">
-              <h3 style="
-                margin: 0;
-                font-size: 1.125rem;
-                font-weight: 700;
-                color: var(--neutral-800);
-              ">Land Holdings</h3>
-              <p id="landarea-count" style="
-                margin: 0.25rem 0 0 0;
-                font-size: 0.875rem;
-                color: var(--neutral-500);
-              ">Loading...</p>
+              <div>
+                <h3 style="
+                  margin: 0;
+                  font-size: 1.125rem;
+                  font-weight: 700;
+                  color: var(--neutral-800);
+                ">Land Holdings</h3>
+                <p id="landarea-count" style="
+                  margin: 0.25rem 0 0 0;
+                  font-size: 0.875rem;
+                  color: var(--neutral-500);
+                ">Loading...</p>
+              </div>
+              
             </div>
             <ul id="landarea-list" class="landarea-list" style="
               list-style: none;
@@ -575,6 +601,38 @@
         // Initialize map when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initManoloFortichMap();
+            // Settings dropdown wiring (global floating button)
+            const btn = document.getElementById('global-settings-btn');
+            const menu = document.getElementById('global-settings-menu');
+            if (btn && menu) {
+              btn.addEventListener('click', function(e){
+                e.stopPropagation();
+                menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+              });
+              document.addEventListener('click', function(ev){
+                if (menu.style.display === 'block' && !menu.contains(ev.target) && ev.target !== btn) {
+                  menu.style.display = 'none';
+                }
+              });
+              // Account Settings -> open modal
+              const accountBtn = document.getElementById('account-settings-item');
+              if (accountBtn) accountBtn.onclick = function(){
+                menu.style.display = 'none';
+                document.getElementById('account-settings-modal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+              };
+              // Logout -> open confirm modal
+              const logoutBtn = document.getElementById('logout-item');
+              if (logoutBtn) logoutBtn.onclick = function(){
+                menu.style.display = 'none';
+                document.getElementById('logout-confirmation').style.display = 'block';
+              };
+            }
+            // Wire logout modal buttons
+            const logoutYes = document.getElementById('logout-yes');
+            const logoutNo = document.getElementById('logout-no');
+            if (logoutYes) logoutYes.onclick = function(){ window.location.href = 'index.html'; };
+            if (logoutNo) logoutNo.onclick = function(){ document.getElementById('logout-confirmation').style.display = 'none'; };
         });
 
         function initManoloFortichMap() {
@@ -933,8 +991,8 @@
     <div id="logout-confirmation" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
      background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
         <p>Are you sure you want to log out?</p>
-        <button onclick="logout()">Yes</button>
-        <button onclick="hideLogoutConfirmation()">No</button>
+        <button id="logout-yes">Yes</button>
+        <button id="logout-no">No</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
