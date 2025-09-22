@@ -221,18 +221,20 @@
         
         <!-- ===== Reports: Container ===== -->
         <!-- Parent wrapper for the tabbed reporting UI and its controls. -->
-        <section id="reports" style="margin-top:32px;">
+        <section id="reports" style="margin-top:0;">
           <style>
             .reports-kpis { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin: 0 0 14px 0; }
-            .kpi-card { background: linear-gradient(180deg, #23272f 0%, #1f242b 100%); border:1px solid #2e3742; border-radius:12px; padding:14px 16px; color:#e9eef3; box-shadow:0 4px 20px rgba(0,0,0,.25); }
-            .kpi-label { color:#bdbdbd; font-size:.9em; margin-bottom:6px; }
-            .kpi-value { font-size:1.9em; font-weight:900; letter-spacing:.2px; }
-            .reports-grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:12px; }
-            .panel { background: linear-gradient(180deg, #23272f 0%, #1e2228 100%); border:1px solid #2b3440; border-radius:12px; padding:14px 16px; color:#e9eef3; box-shadow:0 4px 20px rgba(0,0,0,.25); }
-            .panel-header { font-weight:800; margin-bottom:8px; color:#ffd84d; letter-spacing:.2px; }
-            .panel table { width:100%; border-collapse: collapse; }
-            .panel th, .panel td { text-align:left; padding:12px 12px; border-bottom:1px solid #313947; font-size:.98em; }
-            .panel th { color:#ffd84d; background:#1b1f25; position:sticky; top:0; }
+            .kpi-card { background: rgba(30,32,36,.85); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; color:#e9eef3; box-shadow:0 6px 24px rgba(0,0,0,.18); backdrop-filter: blur(8px); }
+            .kpi-label { color:#bdbdbd; font-size:.88em; margin-bottom:6px; letter-spacing:.2px; }
+            .kpi-value { font-size:2.1em; font-weight:800; letter-spacing:.2px; }
+            .reports-grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:14px; }
+            .panel { background: rgba(30,32,36,.85); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; color:#e9eef3; box-shadow:0 8px 28px rgba(0,0,0,.20); backdrop-filter: blur(8px); }
+            .panel-header { font-weight:800; margin-bottom:10px; color:#ffd84d; letter-spacing:.2px; }
+            .panel table { width:100%; border-collapse: separate; border-spacing:0; overflow:hidden; border-radius:10px; }
+            .panel thead th { background:#161a20; color:#ffd84d; text-align:left; padding:12px; font-weight:800; font-size:.9em; border-bottom:1px solid #2a3440; position:sticky; top:0; }
+            .panel tbody td { padding:12px; border-bottom:1px solid #252c36; font-size:.95em; }
+            .panel tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+            .panel tbody tr:hover { background: rgba(255,255,255,0.05); }
             .tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.8em; font-weight:700; }
             .tag.workable { background:#123c2a; color:#a7f3d0; border:1px solid #0ea36a; }
             .tag.problematic { background:#452325; color:#fecaca; border:1px solid #e11d48; }
@@ -253,8 +255,8 @@
             <div class="panel">
               <div class="panel-header">Map Records (recent)</div>
               <table id="rep-map-records"><thead><tr>
-                <th>ID</th><th>LO Name</th><th>Barangay</th><th>Status</th><th>Area (m²)</th><th>Created</th>
-              </tr></thead><tbody><tr><td colspan="6">Loading...</td></tr></tbody></table>
+                <th>LO Name</th><th>Barangay</th><th>Status</th><th>Created</th>
+              </tr></thead><tbody><tr><td colspan="4">Loading...</td></tr></tbody></table>
             </div>
             <div class="panel">
               <div class="panel-header">Land Status by Barangay</div>
@@ -262,12 +264,7 @@
                 <th>Barangay</th><th>Workable</th><th>Problematic</th><th>Total Areas</th>
               </tr></thead><tbody><tr><td colspan="4">Loading...</td></tr></tbody></table>
             </div>
-            <div class="panel" style="grid-column: 1 / -1;">
-              <div class="panel-header">Recent Activity</div>
-              <table id="rep-activity"><thead><tr>
-                <th>Operation</th><th>Status</th><th>Time</th><th>Timestamp</th>
-              </tr></thead><tbody><tr><td colspan="4">Loading...</td></tr></tbody></table>
-            </div>
+            
           </div>
           <script>
             (function(){
@@ -309,14 +306,11 @@
                   mapTbody.innerHTML = (areas||[]).slice(0,25).map(row=>{
                     const tag = (row.land_status||'workable').toLowerCase();
                     const tagCls = tag==='problematic'?'problematic':'workable';
-                    const areaNum = typeof row.total_area==='number'?row.total_area:parseFloat(row.total_area);
                     const created = row.created_at ? new Date(row.created_at).toLocaleString() : '';
                     return `<tr>
-                      <td>${row.id}</td>
                       <td>${row.lo_name||''}</td>
                       <td>${row.barangay_name||''}</td>
                       <td><span class="tag ${tagCls}">${tag}</span></td>
-                      <td>${isNaN(areaNum)?'':n(Number(areaNum.toFixed(2)))}</td>
                       <td>${created}</td>
                     </tr>`;
                   }).join('') || '<tr><td colspan="6">No records found.</td></tr>';
@@ -330,21 +324,10 @@
                   document.querySelector('#rep-map-records tbody').innerHTML = `<tr><td colspan="6">Failed to load: ${e.message||'Error'}</td></tr>`;
                   document.querySelector('#rep-status-brgy tbody').innerHTML = `<tr><td colspan="4">Failed to load</td></tr>`;
                 }
-                // Activity logs
-                try {
-                  const { data: logs, error: logErr } = await sb.from('activity_logs').select('*').order('timestamp', { ascending:false }).limit(100);
-                  if (logErr) throw logErr;
-                  const tbody = document.querySelector('#rep-activity tbody');
-                  tbody.innerHTML = (logs||[]).map(l=>`<tr>
-                    <td>${l.operation_name||''}</td>
-                    <td><span class="log-status succeeded">${l.status||''}</span></td>
-                    <td>${l.time||''}</td>
-                    <td>${l.timestamp?new Date(l.timestamp).toLocaleString():''}</td>
-                  </tr>`).join('') || '<tr><td colspan="4">No logs found.</td></tr>';
-                } catch(e) {
-                  document.querySelector('#rep-activity tbody').innerHTML = `<tr><td colspan="4">Failed to load</td></tr>`;
-                }
+                
               }
+              // Expose for external callers
+              window.loadReports = loadReports;
               // Hook into navigation
               const origNav = window.navigateTo;
               window.navigateTo = function(id){ if (origNav) origNav(id); if (id==='home') loadReports(); };

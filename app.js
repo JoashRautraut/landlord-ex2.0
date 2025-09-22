@@ -8,6 +8,8 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Expose globally so inline scripts (e.g., in home.html) can use the same client
 window.supabaseClient = supabase;
 
+// Note: No separate owners table in schema; use land_areas.lo_name and land_areas.user_id
+
 document.addEventListener('DOMContentLoaded', () => {
     const title_el = document.getElementById('title');
     if (window.api && window.api.title) {
@@ -481,16 +483,8 @@ async function drawLandAreas(map) {
     console.error('Error fetching land areas:', landError);
     return;
   }
-  // Fetch owners and users (best-effort)
-  let owners = [];
+  // Fetch users (best-effort). Owner name comes from land_areas.lo_name.
   let users = [];
-  try {
-    const ownersRes = await supabase
-    .from('owners')
-    .select('name, land_area_id, user_id');
-    if (!ownersRes.error) owners = ownersRes.data || [];
-    else console.warn('Owners fetch failed, continuing without owners:', ownersRes.error);
-  } catch (e) { console.warn('Owners fetch exception:', e); }
   try {
     const usersRes = await supabase
     .from('users')
@@ -510,13 +504,11 @@ async function drawLandAreas(map) {
     if (Array.isArray(coords) && coords.length && !Array.isArray(coords[0]) && coords[0] && typeof coords[0].lat === 'number') {
       coords = coords.map(p => [p.lat, p.lng]);
     }
-    // Find the owner for this land area
-    const owner = owners.find(o => o.land_area_id === area.id);
-    const ownerName = owner?.name || 'Unknown Owner';
-    // Find the user who added this owner
+    // Determine owner and added-by info from land_areas and users
+    const ownerName = (area.lo_name && String(area.lo_name).trim()) || 'Unknown Owner';
     let addedBy = 'Unknown User';
-    if (owner && owner.user_id) {
-      const user = users.find(u => u.user_id === owner.user_id);
+    if (area.user_id) {
+      const user = users.find(u => u.user_id === area.user_id);
       if (user) {
         addedBy = `${user.user_firstname || ''} ${user.user_lastname || ''}`.trim();
         if (!addedBy) addedBy = user.user_email;
@@ -599,8 +591,10 @@ window.navigateTo = function(sectionId) {
   if (origNav) origNav(sectionId);
   if (sectionId === 'home') {
     if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
-    // Re-render map records when returning to reports
-    setupMapRecordsReportRendering();
+    // Trigger the reports loader when navigating to Home
+    if (typeof window.loadReports === 'function') {
+      window.loadReports();
+    }
   }
   if (sectionId === 'profile') {
     if (typeof fetchAndRenderUsers === 'function') fetchAndRenderUsers();
@@ -1743,33 +1737,24 @@ async function showOwnerProfilePopup(area, coords, map, latlng) {
   console.log('showOwnerProfilePopup', { map, latlng, coords, area });
   if (!map) console.error('Map is undefined');
   if (!latlng) console.error('popupLatLng is undefined');
-  // Fetch owner and user info for this land area
-  let ownerName = 'Unknown';
+  // Compute owner/user info directly from land_areas and users
+  let ownerName = (area.lo_name && String(area.lo_name).trim()) || 'Unknown';
   let addedBy = 'Unknown User';
-  let createdAt = null;
+  let createdAt = area.created_at || null;
   try {
-    const { data: ownerData, error: ownerError } = await supabase
-      .from('owners')
-      .select('name, user_id, created_at')
-      .eq('land_area_id', area.id)
-      .single();
-    if (!ownerError && ownerData) {
-      ownerName = ownerData.name || 'Unknown';
-      createdAt = ownerData.created_at;
-      if (ownerData.user_id) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('user_firstname, user_lastname, user_email')
-          .eq('user_id', ownerData.user_id)
-          .single();
-        if (!userError && userData) {
-          addedBy = `${userData.user_firstname || ''} ${userData.user_lastname || ''}`.trim();
-          if (!addedBy) addedBy = userData.user_email;
-        }
+    if (area.user_id) {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('user_firstname, user_lastname, user_email')
+        .eq('user_id', area.user_id)
+        .single();
+      if (!userError && userData) {
+        addedBy = `${userData.user_firstname || ''} ${userData.user_lastname || ''}`.trim();
+        if (!addedBy) addedBy = userData.user_email;
       }
     }
   } catch (e) {
-    console.log('Exception during owner/user fetch:', e);
+    console.log('Exception during user fetch:', e);
   }
   let popupLatLng = latlng;
   if (!popupLatLng && coords && coords.length > 0) {
