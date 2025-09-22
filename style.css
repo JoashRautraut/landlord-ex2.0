@@ -218,7 +218,7 @@ nav a:hover, nav a.active {
 /* ====== MAIN CONTAINER ====== */
 .container {
     margin-left: 0 !important;
-    padding: 70px 16px 16px 16px;
+    padding: 0 16px 16px 16px;
     min-height: 100vh;
     background: transparent;
     transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -537,7 +537,7 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     }
     .container {
         margin-left: 60px;
-        padding: 60px 4vw 8px 4vw;
+        padding: 0 4vw 8px 4vw;
     }
     nav a, nav a.active, nav a:hover {
         padding: 16px 10px;
@@ -569,7 +569,7 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     }
     .container {
         margin-left: 0;
-        padding: 70px 4px 4px 4px;
+        padding: 0 4px 4px 4px;
     }
     .dashboard-cards, .dashboard-charts {
         flex-direction: column;
@@ -1136,11 +1136,11 @@ body.login-page {
 }
 
 #home {
-    padding-top: 170px;
+    padding-top: 0;
 }
 @media (max-width: 768px) {
     #home {
-        padding-top: 100px;
+        padding-top: 0;
     }
     .dashboard-cards {
         flex-direction: column;
@@ -1178,7 +1178,7 @@ body.login-page {
 
 @media (max-width: 768px) {
     #home {
-        padding-top: 200px;
+        padding-top: 0;
     }
     .dashboard-card {
         padding: 10px 4px 8px 4px;
@@ -1360,7 +1360,7 @@ html, body {
 
 body {
     min-height: 100vh;
-    background: #fff;
+    background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
 }
 
 #mapid {
