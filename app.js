@@ -876,6 +876,132 @@ const EARTH_RADIUS_M = 6371000;
 // Default origin: Lingi-on (Tie Line Start)
 const referenceOrigin = { lat: 8.400, lng: 124.883, name: 'Lingi-on' };
 
+// --- proj4 loader and PRS92 Zone 3 definition ---
+let _proj4Loading = false;
+function _ensureProj4Loaded() {
+  if (window.proj4) {
+    if (!proj4.defs['PRS92_ZONE3']) {
+      proj4.defs('PRS92_ZONE3', '+proj=tmerc +lat_0=0 +lon_0=124 +k=0.99995 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs');
+    }
+    return true;
+  }
+  if (_proj4Loading) return false;
+  _proj4Loading = true;
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js';
+  s.async = true;
+  s.onload = function() {
+    try {
+      if (!proj4.defs['PRS92_ZONE3']) {
+        proj4.defs('PRS92_ZONE3', '+proj=tmerc +lat_0=0 +lon_0=124 +k=0.99995 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs');
+      }
+    } catch (e) { console.warn('proj4 load but defs failed', e); }
+  };
+  s.onerror = function() { console.warn('Failed to load proj4'); };
+  document.head.appendChild(s);
+  return false;
+}
+
+function _isPRS92Candidate(easting, northing) {
+  return (
+    typeof easting === 'number' && typeof northing === 'number' &&
+    easting > 200000 && easting < 400000 &&
+    northing > 800000 && northing < 1200000
+  );
+}
+
+function _convertPRS92ToWGS84(easting, northing) {
+  if (!window.proj4 || !proj4.defs['PRS92_ZONE3']) return null;
+  try {
+    const res = proj4('PRS92_ZONE3', 'WGS84', [easting, northing]);
+    if (!Array.isArray(res) || res.length < 2) return null;
+    const lon = res[0];
+    const lat = res[1];
+    if (isNaN(lat) || isNaN(lon)) return null;
+    return { lat, lng: lon };
+  } catch (e) {
+    console.warn('PRS92->WGS84 conversion failed', e);
+    return null;
+  }
+}
+
+// --- Affine transform setup (local survey E/N -> WGS84 lat/lng) ---
+// Example control points - replace with your own as needed
+const _affineLocalPoints = [
+  { E: 23198.620, N: 23425.240 },
+  { E: 23519.570, N: 23111.940 },
+  { E: 23301.590, N: 23064.430 },
+  { E: 23018.230, N: 23203.940 }
+];
+const _affineGpsPoints = [
+  { lat: 8.398673, lon: 124.894305 },
+  { lat: 8.398230, lon: 124.895121 },
+  { lat: 8.397676, lon: 124.894605 },
+  { lat: 8.398102, lon: 124.893790 }
+];
+
+// Solve affine parameters for mapping:
+// lat = a*E + b*N + c
+// lon = d*E + e*N + f
+function _solveAffine(localPts, gpsPts) {
+  const cols = 6;
+  let AtA = Array.from({ length: cols }, () => Array(cols).fill(0));
+  let Atb = Array(cols).fill(0);
+
+  for (let i = 0; i < localPts.length; i++) {
+    const { E, N } = localPts[i];
+    const { lat, lon } = gpsPts[i];
+
+    const r1 = [E, N, 1, 0, 0, 0];
+    const r2 = [0, 0, 0, E, N, 1];
+
+    for (let p = 0; p < cols; p++) {
+      for (let q = 0; q < cols; q++) {
+        AtA[p][q] += r1[p] * r1[q] + r2[p] * r2[q];
+      }
+      Atb[p] += r1[p] * lat + r2[p] * lon;
+    }
+  }
+
+  // Gaussian elimination
+  let M = AtA.map((row, i) => row.concat([Atb[i]]));
+  const n = M.length;
+
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+    }
+    [M[i], M[maxRow]] = [M[maxRow], M[i]];
+    if (Math.abs(M[i][i]) < 1e-12) throw new Error('Singular system');
+
+    const piv = M[i][i];
+    for (let j = i; j <= n; j++) M[i][j] /= piv;
+
+    for (let r = 0; r < n; r++) {
+      if (r === i) continue;
+      const factor = M[r][i];
+      for (let c = i; c <= n; c++) M[r][c] -= factor * M[i][c];
+    }
+  }
+  return M.map(row => row[n]); // [a, b, c, d, e, f]
+}
+
+function _localToLatLng(params, E, N) {
+  const [a, b, c, d, e, f] = params;
+  return { lat: a * E + b * N + c, lng: d * E + e * N + f };
+}
+
+let _affineParams = null;
+try {
+  if (_affineLocalPoints.length >= 3 && _affineLocalPoints.length === _affineGpsPoints.length) {
+    _affineParams = _solveAffine(_affineLocalPoints, _affineGpsPoints);
+    // console.log('Affine parameters:', _affineParams);
+  }
+} catch (err) {
+  console.warn('Affine solve failed:', err);
+}
+
 // Convert lat/lon to local Northing/Easting (meters) relative to origin
 function latLonToNE(lat, lng, lat0, lng0) {
   const dPhi = toRadians(lat - lat0);
@@ -907,8 +1033,7 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 
 // Transform survey coordinates to lat/lng using Tie Line method
 function transformSurveyToLatLng(easting, northing) {
-  // Use the starting easting/northing as the local origin in meters,
-  // and anchor it to a fixed geographic reference origin (referenceOrigin)
+  // Preserve distance and azimuth relative to the user-provided start E/N
   const startE = parseFloat(document.getElementById('starting-easting').value.replace(/[^\d.-]/g, '')) || 20000;
   const startN = parseFloat(document.getElementById('starting-northing').value.replace(/[^\d.-]/g, '')) || 20000;
 
@@ -919,11 +1044,28 @@ function transformSurveyToLatLng(easting, northing) {
   let azimuth = Math.atan2(deltaEasting, deltaNorthing) * (180 / Math.PI);
   if (azimuth < 0) azimuth += 360;
 
-  const latScale = 1 / 111320; // meters per degree latitude (approx)
-  const lngScale = 1 / (111320 * Math.cos(toRadians(referenceOrigin.lat))); // meters per degree longitude (approx)
-
-  const lat = referenceOrigin.lat + (deltaNorthing * latScale);
-  const lng = referenceOrigin.lng + (deltaEasting * lngScale);
+  // Prefer PRS92 tmerc conversion if candidate; then affine; then simple fallback
+  let lat, lng;
+  if (_isPRS92Candidate(easting, northing)) {
+    const ready = _ensureProj4Loaded();
+    if (ready) {
+      const w = _convertPRS92ToWGS84(easting, northing);
+      if (w && !isNaN(w.lat) && !isNaN(w.lng)) {
+        lat = w.lat; lng = w.lng;
+      }
+    }
+  }
+  if (_affineParams && (lat === undefined || lng === undefined)) {
+    const res = _localToLatLng(_affineParams, easting, northing);
+    lat = res.lat;
+    lng = res.lng;
+  }
+  if (lat === undefined || lng === undefined) {
+    const latScale = 1 / 111320; // meters per degree latitude (approx)
+    const lngScale = 1 / (111320 * Math.cos(toRadians(referenceOrigin.lat))); // meters per degree longitude (approx)
+    lat = referenceOrigin.lat + (deltaNorthing * latScale);
+    lng = referenceOrigin.lng + (deltaEasting * lngScale);
+  }
 
   return { lat, lng, distance, azimuth };
 }
