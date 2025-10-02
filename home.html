@@ -362,8 +362,8 @@
           <div class="bearings-modal-content">
             <div class="bearings-modal-header">
               <div class="header-content">
-                <h3>Survey Points</h3>
-                <p class="header-subtitle">Add survey coordinates to create a traverse</p>
+                <h3 id="modal-title">Add Land Holding</h3>
+                <p id="modal-subtitle" class="header-subtitle">Step 1 of 3: Land Owner Information</p>
               </div>
               <button id="close-bearings-modal" class="close-modal-btn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -372,107 +372,113 @@
                 </svg>
               </button>
             </div>
+
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+              <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <span class="step-label">Owner Info</span>
+              </div>
+              <div class="progress-line"></div>
+              <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <span class="step-label">Starting Point</span>
+              </div>
+              <div class="progress-line"></div>
+              <div class="progress-step" data-step="3">
+                <div class="step-number">3</div>
+                <span class="step-label">Survey Points</span>
+              </div>
+            </div>
             
             <div class="bearings-modal-body">
-              <!-- Starting Point Section -->
-              <div class="section">
-                <div class="section-header">
-                  <h4>Starting Point</h4>
-                  <div class="section-indicator"></div>
-                </div>
-                <div class="coordinates-grid">
-                  <div class="coordinate-input" style="grid-column: 1 / -1;">
-                    <label for="lo-name-input">LO Name</label>
-                    <input type="text" id="lo-name-input" placeholder="Enter landowner name" />
+              <!-- Step 1: Land Owner Information -->
+              <div id="step-1" class="modal-step active">
+                <div class="step-content">
+                  <div class="step-header">
+                    <h4>Land Owner Information</h4>
+                    <p>Enter the basic information about the land owner</p>
                   </div>
-                  <div class="coordinate-input">
-                    <label for="starting-easting">Easting</label>
-                    <input type="text" id="starting-easting" placeholder="20000.000" value="20000.000">
-                  </div>
-                  <div class="coordinate-input">
-                    <label for="starting-northing">Northing</label>
-                    <input type="text" id="starting-northing" placeholder="20000.000" value="20000.000">
+                  <div class="form-group">
+                    <label for="lo-name-input">Land Owner Name <span class="required">*</span></label>
+                    <input type="text" id="lo-name-input" placeholder="Enter the full name of the land owner" required />
+                    <div class="input-help">This will be used to identify the land holding</div>
                   </div>
                 </div>
               </div>
-              
-              <!-- Survey Points Section -->
-              <div class="section">
-                <div class="section-header">
-                  <h4>Survey Points</h4>
-                  <div class="section-indicator"></div>
-                </div>
-                
-                <div class="points-table-wrapper">
-                  <table id="lines-table" class="points-table">
-                    <thead>
-                      <tr>
-                        <th>Point</th>
-                        <th>Northing</th>
-                        <th>Easting</th>
-                        <th>Distance</th>
-                        <th>Bearing</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody id="lines-tbody">
-                      <!-- Points will be added here dynamically -->
-                    </tbody>
-                  </table>
-                </div>
-                
-                <button id="add-point-btn" class="add-point-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  Add Point
-                </button>
-              </div>
-              
-              <!-- Add Point Form -->
-              <div class="point-input-section" style="display: none;">
-                <div class="section-header">
-                  <h4>Add New Point</h4>
-                  <div class="section-indicator"></div>
-                </div>
-                
-                <div class="coordinates-grid">
-                  <div class="coordinate-input">
-                    <label for="point-northing">Northing</label>
-                    <input type="text" id="point-northing" placeholder="23425.240">
+
+              <!-- Step 2: Starting Point Coordinates -->
+              <div id="step-2" class="modal-step">
+                <div class="step-content">
+                  <div class="step-header">
+                    <h4>Starting Point Coordinates</h4>
+                    <p>Define the reference starting point for the land survey</p>
                   </div>
-                  <div class="coordinate-input">
-                    <label for="point-easting">Easting</label>
-                    <input type="text" id="point-easting" placeholder="23198.620">
+                  <div class="coordinates-grid">
+                    <div class="coordinate-input">
+                      <label for="starting-easting">Easting <span class="required">*</span></label>
+                      <input type="text" id="starting-easting" placeholder="20000.000" value="20000.000" required>
+                      <div class="input-help">East-West coordinate</div>
+                    </div>
+                    <div class="coordinate-input">
+                      <label for="starting-northing">Northing <span class="required">*</span></label>
+                      <input type="text" id="starting-northing" placeholder="20000.000" value="20000.000" required>
+                      <div class="input-help">North-South coordinate</div>
+                    </div>
                   </div>
-                </div>
-                
-                <div class="form-actions">
-                  <button id="add-point-to-table-btn" class="btn-primary">Add Point</button>
-                  <button id="cancel-point-btn" class="btn-secondary">Cancel</button>
                 </div>
               </div>
-              
-              <!-- Summary Section -->
-              <div class="section">
-                <div class="section-header">
-                  <h4>Summary</h4>
-                  <div class="section-indicator"></div>
-                </div>
-                
-                <div class="summary-grid">
-                  <div class="summary-item">
-                    <span class="summary-label">Points</span>
-                    <span id="total-points" class="summary-value">0</span>
+
+              <!-- Step 3: Survey Points Collection -->
+              <div id="step-3" class="modal-step">
+                <div class="step-content">
+                  <div class="step-header">
+                    <h4>Survey Points</h4>
+                    <p>Add the survey points that define the land boundary</p>
                   </div>
-                  <div class="summary-item">
-                    <span class="summary-label">Distance</span>
-                    <span id="total-distance" class="summary-value">0.00 m</span>
+                  
+                  <div class="points-count-section">
+                    <div class="form-group">
+                      <label for="points-count">Number of Points <span class="required">*</span></label>
+                      <input type="number" id="points-count" min="3" max="20" placeholder="Enter number of points (minimum 3)" />
+                      <div class="input-help">How many survey points define this land area?</div>
+                    </div>
+                    <button id="generate-points-btn" class="btn-secondary" disabled>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                      </svg>
+                      Generate Point Fields
+                    </button>
                   </div>
-                  <div class="summary-item">
-                    <span class="summary-label">Area</span>
-                    <span id="total-area" class="summary-value">0.00 m²</span>
+
+                  <div id="points-input-container" class="points-input-container" style="display: none;">
+                    <div class="points-input-header">
+                      <h5>Enter Coordinates for Each Point</h5>
+                    </div>
+                    <div id="dynamic-points-inputs" class="dynamic-points-inputs">
+                      <!-- Dynamic point inputs will be generated here -->
+                    </div>
+                  </div>
+
+                  <!-- Summary Section -->
+                  <div id="points-summary" class="points-summary" style="display: none;">
+                    <div class="summary-header">
+                      <h5>Survey Summary</h5>
+                    </div>
+                    <div class="summary-grid">
+                      <div class="summary-item">
+                        <span class="summary-label">Total Points</span>
+                        <span id="total-points" class="summary-value">0</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Total Distance</span>
+                        <span id="total-distance" class="summary-value">0.00 m</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Total Area</span>
+                        <span id="total-area" class="summary-value">0.00 m²</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -480,15 +486,19 @@
             
             <div class="bearings-modal-footer">
               <div class="footer-actions">
-                <button id="load-sample-data-btn" class="btn-secondary">
+                <button id="back-btn" class="btn-secondary" style="display: none;">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7,10 12,15 17,10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                    <polyline points="15,18 9,12 15,6"></polyline>
                   </svg>
-                  Load Sample
+                  Back
                 </button>
-                <button id="add-survey-to-map-btn" class="btn-primary" disabled>
+                <button id="next-btn" class="btn-primary" disabled>
+                  Next
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                  </svg>
+                </button>
+                <button id="add-survey-to-map-btn" class="btn-primary" style="display: none;">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
@@ -569,9 +579,9 @@
               </div>
               
             </div>
-            <div class="landarea-tabs" style="display:flex; gap:8px; margin: 8px 0 10px 0; padding-left: 3rem;">
-              <button id="land-tab-workable" class="ll-btn" style="padding:6px 10px; border-radius: 999px; border:1px solid var(--neutral-300); background:#fff; color:#111; font-weight:700;">Workable</button>
-              <button id="land-tab-problematic" class="ll-btn" style="padding:6px 10px; border-radius: 999px; border:1px solid var(--neutral-300); background:#fff; color:#111; font-weight:700;">Problematic</button>
+            <div class="landarea-tabs">
+              <button id="land-tab-workable" class="ll-btn">Workable</button>
+              <button id="land-tab-problematic" class="ll-btn">Problematic</button>
             </div>
             <ul id="landarea-list-workable" class="landarea-list" style="
               list-style: none;

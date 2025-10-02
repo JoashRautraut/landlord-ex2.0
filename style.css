@@ -1443,8 +1443,9 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 .landarea-panel-header {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
-    border-bottom: 1px solid #374151 !important;
+    border-bottom: none !important;
     position: relative !important;
+    border-radius: 20px 20px 0 0 !important;
 }
 
 .landarea-panel-header::before {
@@ -1481,46 +1482,77 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 }
 
 .landarea-tabs {
-    margin: 16px 0 20px 0 !important;
-    padding-left: 3rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+    border-radius: 0 0 16px 16px !important;
+    border-top: 1px solid #374151 !important;
+    overflow: hidden !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .landarea-tabs .ll-btn {
-    padding: 8px 16px !important;
-    border-radius: 20px !important;
-    border: 2px solid #374151 !important;
-    background: rgba(55, 65, 81, 0.6) !important;
-    color: #d1d5db !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
+    flex: 1 !important;
+    padding: 16px 20px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #9ca3af !important;
+    font-weight: 700 !important;
+    font-size: 0.875rem !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 1px !important;
     transition: all 0.3s ease !important;
-    backdrop-filter: blur(10px) !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    position: relative !important;
+    border-right: 1px solid #374151 !important;
+}
+
+.landarea-tabs .ll-btn:last-child {
+    border-right: none !important;
+}
+
+.landarea-tabs .ll-btn::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, #ffd600 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
 .landarea-tabs .ll-btn:hover {
-    background: rgba(76, 175, 80, 0.1) !important;
-    border-color: var(--accent) !important;
+    background: rgba(76, 175, 80, 0.08) !important;
     color: var(--accent) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2) !important;
+}
+
+.landarea-tabs .ll-btn:hover::before {
+    transform: scaleX(1);
 }
 
 .landarea-tabs .ll-btn.active {
-    background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
-    border-color: var(--accent) !important;
+    background: rgba(76, 175, 80, 0.15) !important;
     color: var(--accent) !important;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2) !important;
+    font-weight: 800 !important;
+}
+
+.landarea-tabs .ll-btn.active::before {
+    transform: scaleX(1);
 }
 
 .landarea-list {
-    padding: 0 !important;
+    padding: 16px !important;
     margin: 0 !important;
-    max-height: calc(100vh - 220px) !important;
+    max-height: calc(100vh - 280px) !important;
     overflow-y: auto !important;
     scrollbar-width: thin !important;
     scrollbar-color: #374151 #1f2937 !important;
+    background: transparent !important;
 }
 
 .landarea-list::-webkit-scrollbar {
@@ -1588,10 +1620,18 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    gap: 12px !important;
+    min-height: 48px !important;
 }
 
 .landarea-list li > div > div:first-child {
     flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.landarea-list li > div > div:last-child {
+    flex-shrink: 0 !important;
 }
 
 .landarea-list li > div > div:first-child > div:first-child {
@@ -1622,10 +1662,13 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1) !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
     backdrop-filter: blur(10px) !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-width: fit-content !important;
 }
 
 .status-problematic {
@@ -1639,10 +1682,13 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1) !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
     backdrop-filter: blur(10px) !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-width: fit-content !important;
 }
 
 /* Responsive Design for Land Holdings Panel */
@@ -1654,7 +1700,13 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     }
     
     .landarea-tabs {
-        padding-left: 1rem !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+    
+    .landarea-tabs .ll-btn {
+        font-size: 0.8rem !important;
+        padding: 12px 16px !important;
+        letter-spacing: 0.5px !important;
     }
     
     .landarea-list li {
@@ -1662,8 +1714,25 @@ nav:hover ~ .container, nav:focus-within ~ .container {
         margin-bottom: 10px !important;
     }
     
+    .landarea-list li > div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        min-height: auto !important;
+    }
+    
+    .landarea-list li > div > div:last-child {
+        align-self: flex-end !important;
+    }
+    
     .landarea-list li > div > div:first-child > div:first-child {
         font-size: 0.9rem !important;
+    }
+    
+    .status-workable,
+    .status-problematic {
+        font-size: 0.7rem !important;
+        padding: 4px 8px !important;
     }
 }
 
@@ -3138,7 +3207,7 @@ body.blurred > *:not(#logout-confirmation) {
   box-shadow: 0 4px 12px rgba(255, 214, 0, 0.4) !important;
 }
 
-/* Modern Bearings Modal Styles */
+/* Modern Multi-Step Modal Styles */
 .bearings-modal {
   display: none;
   position: fixed;
@@ -3162,9 +3231,9 @@ body.blurred > *:not(#logout-confirmation) {
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  max-width: 600px;
+  max-width: 700px;
   width: 90%;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -3173,6 +3242,303 @@ body.blurred > *:not(#logout-confirmation) {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Progress Indicator Styles */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+}
+
+.progress-step.active .step-number {
+  background: #ffd600;
+  color: #1a1a1a;
+  border-color: #ffd600;
+  box-shadow: 0 4px 12px rgba(255, 214, 0, 0.3);
+}
+
+.progress-step.completed .step-number {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.progress-step.active .step-label {
+  color: #1a1a1a;
+}
+
+.progress-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 20px;
+  position: relative;
+  top: -16px;
+}
+
+/* Modal Step Content */
+.modal-step {
+  display: none;
+  animation: stepSlideIn 0.3s ease-out;
+}
+
+.modal-step.active {
+  display: block;
+}
+
+.step-content {
+  padding: 30px;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.step-header h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.step-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  color: #000000 !important;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #ffd600;
+  box-shadow: 0 0 0 3px rgba(255, 214, 0, 0.1);
+}
+
+.input-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.coordinates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.coordinate-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.coordinate-input input {
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+.points-count-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.points-input-container {
+  margin-bottom: 30px;
+}
+
+.points-input-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.points-input-header h5 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dynamic-points-inputs {
+  display: grid;
+  gap: 16px;
+}
+
+.point-input-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.point-input-row input {
+  color: #000000 !important;
+  background: #ffffff !important;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+}
+
+.point-label {
+  font-weight: 600;
+  color: #374151;
+  padding: 12px 0;
+  min-width: 80px;
+}
+
+.points-summary {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.summary-header {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.summary-header h5 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #166534;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.summary-item {
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+@keyframes stepSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .coordinates-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .point-input-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-indicator {
+    padding: 16px 20px;
+  }
+  
+  .progress-line {
+    margin: 0 12px;
+  }
+  
+  .step-content {
+    padding: 20px;
+  }
 }
 
 @keyframes modalSlideIn {
