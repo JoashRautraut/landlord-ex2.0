@@ -36,23 +36,150 @@
 
     <!-- User Management -->
     <main id="profile" class="container">
-        <div style="display: flex; flex-direction: column; align-items: stretch;">
-            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
-                <button id="add-technician-btn" class="modal-btn save add-tech-btn"><span class="add-tech-icon">+</span></button>
+        <!-- Header Section -->
+        <div class="user-management-header">
+            <div class="header-content">
+                <h2 class="section-title">
+                    <span class="title-icon">👥</span>
+                    User Management
+                </h2>
+                <p class="section-subtitle">Manage system users, roles, and permissions</p>
             </div>
-            <table class="account-table">
+            <div class="header-actions">
+                <button id="add-technician-btn" class="add-user-btn">
+                    <span class="btn-icon">+</span>
+                    <span class="btn-text">Add User</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="user-stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon active-users">👤</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="active-users-count">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon total-users">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-users-count">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon technician-users">🔧</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="technician-users-count">0</div>
+                    <div class="stat-label">Technicians</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon office-users">🏢</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="office-users-count">0</div>
+                    <div class="stat-label">Office Users</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input type="text" id="user-search" class="search-input" placeholder="Search users by name or email...">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+            <div class="filter-container">
+                <select id="role-filter" class="filter-select">
+                    <option value="">All Roles</option>
+                    <option value="technician">Technician</option>
+                    <option value="office">Office</option>
+                </select>
+                <select id="status-filter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <div class="table-header">
+                <h3 class="table-title">System Users</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn export-btn">
+                        <span class="btn-icon">📊</span>
+                        Export
+                    </button>
+                    <button class="table-action-btn refresh-btn" id="refresh-users">
+                        <span class="btn-icon">🔄</span>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="modern-users-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                            <th class="sortable" data-sort="avatar">
+                                <span class="th-content">
+                                    <span class="th-text">User</span>
+                                    <span class="sort-indicator">↕</span>
+                                </span>
+                            </th>
+                            <th class="sortable" data-sort="role">
+                                <span class="th-content">
+                                    <span class="th-text">Role</span>
+                                    <span class="sort-indicator">↕</span>
+                                </span>
+                            </th>
+                            <th class="sortable" data-sort="status">
+                                <span class="th-content">
+                                    <span class="th-text">Status</span>
+                                    <span class="sort-indicator">↕</span>
+                                </span>
+                            </th>
+                            <th class="sortable" data-sort="last-active">
+                                <span class="th-content">
+                                    <span class="th-text">Last Active</span>
+                                    <span class="sort-indicator">↕</span>
+                                </span>
+                            </th>
+                            <th class="no-sort">
+                                <span class="th-content">
+                                    <span class="th-text">Actions</span>
+                                </span>
+                            </th>
                     </tr>
                 </thead>
-                <tbody>
+                    <tbody id="users-table-body">
                     <!-- User rows populated by JavaScript -->
                 </tbody>
             </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div class="empty-state" id="users-empty-state" style="display: none;">
+                <div class="empty-icon">👤</div>
+                <h3 class="empty-title">No Users Found</h3>
+                <p class="empty-message">No users match your current search criteria. Try adjusting your filters or search terms.</p>
+                <button class="empty-action-btn" onclick="document.getElementById('user-search').value = ''; document.getElementById('role-filter').value = ''; document.getElementById('status-filter').value = ''; filterUsers();">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-overlay" id="users-loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Loading users...</p>
         </div>
     </main>
 
@@ -122,10 +249,16 @@
           
           <label for="add-tech-email">Email Address</label>
           <input id="add-tech-email" type="email" class="modal-input" placeholder="Enter email address" />
+
+          <label for="add-tech-role">Role</label>
+          <select id="add-tech-role" class="modal-input">
+            <option value="technician" selected>Technician</option>
+            <option value="office">Office</option>
+          </select>
           
           <div style="display: flex; gap: 12px; margin-top: 20px;">
             <button class="modal-btn cancel add-tech-cancel-btn" id="cancel-add-technician">Cancel</button>
-            <button class="modal-btn save add-tech-save-btn" id="save-add-technician">Add Technician</button>
+            <button class="modal-btn save add-tech-save-btn" id="save-add-technician">Add</button>
           </div>
         </div>
       </div>
@@ -183,6 +316,388 @@
       if (hash && document.getElementById(hash)) { navigateTo(hash); }
       else { navigateTo('profile'); }
     });
+    </script>
+
+    <!-- Enhanced User Management JavaScript -->
+    <script>
+    // Backed by Supabase
+    let sampleUsers = [];
+    let currentUsers = [];
+    let currentSort = { field: null, direction: 'asc' };
+
+    // Initialize user management when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeUserManagement();
+        setupEventListeners();
+    });
+
+    async function initializeUserManagement() {
+        await fetchUsersFromDB();
+        updateUserStats();
+        renderUsersTable();
+    }
+
+    async function waitForSupabaseClient(timeoutMs = 5000) {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+            if (window.supabaseClient) return window.supabaseClient;
+            await new Promise(r => setTimeout(r, 100));
+        }
+        return null;
+    }
+
+    async function fetchUsersFromDB() {
+        try {
+            let supa = window.supabaseClient || null;
+            if (!supa) supa = await waitForSupabaseClient(5000);
+            if (!supa && typeof window.getUsers === 'function') {
+                const legacy = await window.getUsers();
+                sampleUsers = (legacy || []).map(u => ({
+                    id: u.user_id,
+                    name: `${u.user_firstname || ''} ${u.user_lastname || ''}`.trim() || (u.user_email || 'User'),
+                    email: u.user_email || '',
+                    role: (u.role || 'user').toLowerCase(),
+                    status: u.active === false ? 'suspended' : 'active',
+                    lastActive: u.updated_at || u.created_at || new Date().toISOString(),
+                    avatar: u.user_avatar_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+                }));
+                currentUsers = [...sampleUsers];
+                return;
+            }
+            if (!supa) {
+                console.warn('Supabase client not found after waiting');
+                sampleUsers = [];
+                currentUsers = [];
+                return;
+            }
+            const { data, error } = await supa
+                .from('users')
+                .select('user_id, user_firstname, user_lastname, user_email, role, active, username')
+                .order('user_id', { ascending: true });
+            if (error) { console.error(error); return; }
+            sampleUsers = (data || []).map(u => ({
+                id: u.user_id,
+                name: `${u.user_firstname || ''} ${u.user_lastname || ''}`.trim() || u.username || (u.user_email || 'User'),
+                email: u.user_email || '',
+                role: (u.role || 'user').toLowerCase(),
+                status: u.active === false ? 'suspended' : 'active',
+                lastActive: new Date().toISOString(),
+                avatar: 'https://randomuser.me/api/portraits/lego/1.jpg'
+            }));
+            currentUsers = [...sampleUsers];
+        } catch (e) { console.error(e); }
+    }
+
+    function updateUserStats() {
+        const stats = {
+            active: currentUsers.filter(u => u.status === 'active').length,
+            total: currentUsers.length,
+            technician: currentUsers.filter(u => u.role === 'technician').length,
+            office: currentUsers.filter(u => u.role === 'office').length
+        };
+
+        document.getElementById('active-users-count').textContent = stats.active;
+        document.getElementById('total-users-count').textContent = stats.total;
+        document.getElementById('technician-users-count').textContent = stats.technician;
+        const offEl = document.getElementById('office-users-count');
+        if (offEl) offEl.textContent = stats.office;
+    }
+
+    function renderUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        const emptyState = document.getElementById('users-empty-state');
+        
+        if (currentUsers.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        
+        tbody.innerHTML = currentUsers.map(user => `
+            <tr data-user-id="${user.id}">
+                <td>
+                    <div class="user-cell">
+                        <img src="${user.avatar}" alt="${user.name}" class="user-avatar">
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-email">${user.email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="role-badge ${user.role}">
+                        ${getRoleIcon(user.role)}
+                        ${capitalizeFirst(user.role)}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${user.status}">
+                        <span class="status-dot ${user.status}"></span>
+                        ${capitalizeFirst(user.status)}
+                    </span>
+                </td>
+                <td>
+                    <span class="last-active">${formatLastActive(user.lastActive)}</span>
+                </td>
+                <td>
+                    <div class="user-actions">
+                        <button class="action-btn edit" onclick="editUser(${user.id})" title="Edit User">
+                            ✏️ Edit
+                        </button>
+                        <button class="action-btn ${user.status === 'suspended' ? 'unsuspend' : 'suspend'}" 
+                                onclick="toggleUserStatus(${user.id})" 
+                                title="${user.status === 'suspended' ? 'Unsuspend' : 'Suspend'} User">
+                            ${user.status === 'suspended' ? '✅ Unsuspend' : '⛔ Suspend'}
+                        </button>
+                        <button class="action-btn delete" onclick="deleteUser(${user.id})" title="Delete User">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function setupEventListeners() {
+        // Search functionality
+        const searchInput = document.getElementById('user-search');
+        const roleFilter = document.getElementById('role-filter');
+        const statusFilter = document.getElementById('status-filter');
+
+        searchInput.addEventListener('input', filterUsers);
+        roleFilter.addEventListener('change', filterUsers);
+        statusFilter.addEventListener('change', filterUsers);
+
+        // Refresh button
+        document.getElementById('refresh-users').addEventListener('click', refreshUsers);
+
+        // Table sorting
+        document.querySelectorAll('.modern-users-table th.sortable').forEach(th => {
+            th.addEventListener('click', () => sortTable(th.dataset.sort));
+        });
+
+        // Edit User modal controls
+        const editModal = document.getElementById('edit-user-modal');
+        const closeEditBtn = document.getElementById('close-edit-modal');
+        const cancelEditBtn = editModal ? editModal.querySelector('.modal-btn.cancel') : null;
+        const saveEditBtn = editModal ? editModal.querySelector('.modal-btn.save') : null;
+
+        if (closeEditBtn) {
+            closeEditBtn.addEventListener('click', closeEditModal);
+        }
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', closeEditModal);
+        }
+        if (saveEditBtn) {
+            saveEditBtn.addEventListener('click', saveEditedUser);
+        }
+
+        // Close edit modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && editModal && editModal.classList.contains('active')) {
+                closeEditModal();
+            }
+        });
+    }
+
+    function filterUsers() {
+        const searchTerm = document.getElementById('user-search').value.toLowerCase();
+        const roleFilter = document.getElementById('role-filter').value;
+        const statusFilter = document.getElementById('status-filter').value;
+
+        currentUsers = sampleUsers.filter(user => {
+            const matchesSearch = !searchTerm || 
+                user.name.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm);
+            
+            const matchesRole = !roleFilter || user.role === roleFilter;
+            const matchesStatus = !statusFilter || user.status === statusFilter;
+
+            return matchesSearch && matchesRole && matchesStatus;
+        });
+
+        updateUserStats();
+        renderUsersTable();
+    }
+
+    function sortTable(field) {
+        if (currentSort.field === field) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.field = field;
+            currentSort.direction = 'asc';
+        }
+
+        currentUsers.sort((a, b) => {
+            let aVal = a[field];
+            let bVal = b[field];
+
+            if (field === 'lastActive') {
+                aVal = new Date(aVal);
+                bVal = new Date(bVal);
+            }
+
+            if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        renderUsersTable();
+        updateSortIndicators();
+    }
+
+    function updateSortIndicators() {
+        document.querySelectorAll('.sort-indicator').forEach(indicator => {
+            indicator.textContent = '↕';
+        });
+
+        if (currentSort.field) {
+            const th = document.querySelector(`[data-sort="${currentSort.field}"] .sort-indicator`);
+            if (th) {
+                th.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+            }
+        }
+    }
+
+    async function refreshUsers() {
+        const loadingOverlay = document.getElementById('users-loading');
+        loadingOverlay.style.display = 'flex';
+        await fetchUsersFromDB();
+        updateUserStats();
+        renderUsersTable();
+        loadingOverlay.style.display = 'none';
+    }
+
+    function editUser(userId) {
+        const user = currentUsers.find(u => u.id === userId);
+        if (user) {
+            // Populate edit modal with user data
+            document.getElementById('edit-user-firstname').value = user.name.split(' ')[0];
+            document.getElementById('edit-user-lastname').value = user.name.split(' ')[1] || '';
+            document.getElementById('edit-user-email').value = user.email;
+            document.getElementById('edit-user-id').value = userId;
+            
+            // Show edit modal
+            const modal = document.getElementById('edit-user-modal');
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+        }
+    }
+
+    async function toggleUserStatus(userId) {
+        try {
+            const client = window.supabaseClient || await waitForSupabaseClient(5000);
+            if (!client) return alert('Supabase not initialized');
+            const row = sampleUsers.find(u => u.id === userId);
+            const newActive = row ? (row.status === 'suspended') : true;
+            const { error } = await client
+                .from('users')
+                .update({ active: newActive })
+                .eq('user_id', userId);
+            if (error) { alert('Failed to update status: ' + error.message); return; }
+            await refreshUsers();
+        } catch (e) { console.error(e); alert('Unexpected error updating status'); }
+    }
+
+    async function deleteUser(userId) {
+        if (!confirm('Delete this user? This cannot be undone unless your database uses soft-delete.')) return;
+        try {
+            const client = window.supabaseClient || await waitForSupabaseClient(5000);
+            if (!client) return alert('Supabase not initialized');
+            // Try hard delete
+            const { error } = await client
+                .from('users')
+                .delete()
+                .eq('user_id', userId);
+            if (error) {
+                console.warn('Hard delete failed, attempting soft-delete via update:', error);
+                const { error: updErr } = await client
+                    .from('users')
+                    .update({ active: false })
+                    .eq('user_id', userId);
+                if (updErr) {
+                    alert('Failed to delete user: ' + (updErr.message || error.message));
+                    return;
+                }
+                alert('User deactivated (soft-deleted) due to database permissions.');
+            }
+            await refreshUsers();
+        } catch (e) { console.error(e); alert('Unexpected error deleting user'); }
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('edit-user-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    async function saveEditedUser() {
+        const idInput = document.getElementById('edit-user-id');
+        const firstNameInput = document.getElementById('edit-user-firstname');
+        const lastNameInput = document.getElementById('edit-user-lastname');
+        const emailInput = document.getElementById('edit-user-email');
+
+        if (!idInput) return closeEditModal();
+
+        const userId = parseInt(idInput.value, 10);
+        const newFirst = (firstNameInput && firstNameInput.value || '').trim();
+        const newLast = (lastNameInput && lastNameInput.value || '').trim();
+        const newEmail = (emailInput && emailInput.value || '').trim();
+
+        try {
+            const client = window.supabaseClient || await waitForSupabaseClient(5000);
+            if (!client) return alert('Supabase not initialized');
+            const update = {};
+            if (newFirst) update.user_firstname = newFirst;
+            if (newLast) update.user_lastname = newLast;
+            if (newEmail) update.user_email = newEmail;
+            const { error } = await client
+                .from('users')
+                .update(update)
+                .eq('user_id', userId);
+            if (error) { alert('Failed to update user: ' + error.message); return; }
+            await refreshUsers();
+            closeEditModal();
+        } catch (e) { console.error(e); alert('Unexpected error updating user'); }
+    }
+
+    // Helper functions
+    function getRoleIcon(role) {
+        const icons = {
+            admin: '⚡',
+            technician: '🔧',
+            user: '👤'
+        };
+        return icons[role] || '👤';
+    }
+
+    function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function formatLastActive(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffHours < 1) return 'Just now';
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    // Make functions global for onclick handlers
+    window.editUser = editUser;
+    window.toggleUserStatus = toggleUserStatus;
+    window.deleteUser = deleteUser;
+    window.filterUsers = filterUsers;
     </script>
 
     <!-- Supabase and shared logic -->

@@ -738,6 +738,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const firstname = document.getElementById('add-tech-firstname').value.trim();
       const lastname = document.getElementById('add-tech-lastname').value.trim();
       const email = document.getElementById('add-tech-email').value.trim();
+      // Optional role selector support: default to technician
+      const roleSelect = document.getElementById('add-tech-role');
+      const selectedRole = (roleSelect && roleSelect.value) ? roleSelect.value : 'technician';
       if (!firstname || !lastname || !email) {
         alert('Please fill in all fields.');
         return;
@@ -752,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
           user_firstname: firstname,
           user_lastname: lastname,
           user_password,
-          role: 'technician'
+          role: selectedRole
         }
       ]);
       if (error) {
