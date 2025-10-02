@@ -798,23 +798,13 @@ async function fetchAndRenderLandAreas() {
     const statusText = landStatus === 'problematic' ? 'Problematic' : 'Workable';
     
     const li = document.createElement('li');
-    li.style.cssText = `
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-      background: white;
-      border: 1px solid var(--neutral-200);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      list-style: none;
-    `;
+    li.className = 'land-holding-card';
     
     li.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="flex: 1;">
-          <div style="font-weight: 600; color: var(--neutral-800); margin-bottom: 0.25rem;">${ownerName}</div>
-          <div style="font-size: 0.75rem; color: var(--neutral-500);">${area.barangay_name || 'No barangay specified'}</div>
+      <div>
+        <div>
+          <div>${ownerName}</div>
+          <div>${area.barangay_name || 'No barangay specified'}</div>
         </div>
         <div class="${landStatus === 'problematic' ? 'status-problematic' : 'status-workable'}">
           ${statusIcon} ${statusText}
@@ -822,18 +812,7 @@ async function fetchAndRenderLandAreas() {
       </div>
     `;
     
-    // Add hover effect
-    li.addEventListener('mouseenter', () => {
-      li.style.transform = 'translateY(-1px)';
-      li.style.boxShadow = 'var(--shadow-md)';
-      li.style.borderColor = 'var(--primary)';
-    });
-    
-    li.addEventListener('mouseleave', () => {
-      li.style.transform = 'translateY(0)';
-      li.style.boxShadow = 'var(--shadow-sm)';
-      li.style.borderColor = 'var(--neutral-200)';
-    });
+    // Hover effects are now handled by CSS
     li.onclick = function() {
       if (window.zoomToLandArea) {
         window.zoomToLandArea(area);
@@ -883,13 +862,13 @@ async function fetchAndRenderLandAreas() {
       if (key === 'workable') {
         listWorkable.style.display = '';
         listProblem.style.display = 'none';
-        tabWorkable.classList.add('ll-btn-primary');
-        tabProblem.classList.remove('ll-btn-primary');
+        tabWorkable.classList.add('active');
+        tabProblem.classList.remove('active');
       } else {
         listWorkable.style.display = 'none';
         listProblem.style.display = '';
-        tabProblem.classList.add('ll-btn-primary');
-        tabWorkable.classList.remove('ll-btn-primary');
+        tabProblem.classList.add('active');
+        tabWorkable.classList.remove('active');
       }
     };
     tabWorkable.onclick = () => activate('workable');
