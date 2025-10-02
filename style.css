@@ -3455,6 +3455,19 @@ body.blurred > *:not(#logout-confirmation) {
   border-radius: 8px;
 }
 
+/* Ensure consistent order: Point Label, Northing, Easting */
+.point-input-row > .point-label {
+  order: 1;
+}
+
+.point-input-row > .coordinate-input:has(label[for*="northing"]) {
+  order: 2;
+}
+
+.point-input-row > .coordinate-input:has(label[for*="easting"]) {
+  order: 3;
+}
+
 .point-input-row input {
   color: #000000 !important;
   background: #ffffff !important;

@@ -4762,12 +4762,12 @@ function generatePointFields() {
     pointRow.innerHTML = `
       <div class="point-label">Point ${i}</div>
       <div class="coordinate-input">
-        <label for="point-${i}-easting">Easting</label>
-        <input type="text" id="point-${i}-easting" placeholder="Enter easting" />
-      </div>
-      <div class="coordinate-input">
         <label for="point-${i}-northing">Northing</label>
         <input type="text" id="point-${i}-northing" placeholder="Enter northing" />
+      </div>
+      <div class="coordinate-input">
+        <label for="point-${i}-easting">Easting</label>
+        <input type="text" id="point-${i}-easting" placeholder="Enter easting" />
       </div>
     `;
     container.appendChild(pointRow);
