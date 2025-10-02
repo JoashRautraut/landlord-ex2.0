@@ -621,13 +621,7 @@
                   menu.style.display = 'none';
                 }
               });
-              // Account Settings -> open modal
-              const accountBtn = document.getElementById('account-settings-item');
-              if (accountBtn) accountBtn.onclick = function(){
-                menu.style.display = 'none';
-                document.getElementById('account-settings-modal').style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-              };
+              // Account Settings -> handled in app.js now
               // Logout -> open confirm modal
               const logoutBtn = document.getElementById('logout-item');
               if (logoutBtn) logoutBtn.onclick = function(){
@@ -1036,12 +1030,30 @@
           <button id="account-settings-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.2em;">×</button>
         </div>
         <div style="padding:16px; display:grid; gap:12px 14px;">
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Username</label><input class="ll-input" id="acc-username" type="text" /></div>
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">First Name</label><input class="ll-input" id="acc-firstname" type="text" /></div>
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Last Name</label><input class="ll-input" id="acc-lastname" type="text" /></div>
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Email</label><input class="ll-input" id="acc-email" type="email" /></div>
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">New Password</label><input class="ll-input" id="acc-newpwd" type="password" autocomplete="new-password" /></div>
-          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Current Password</label><input class="ll-input" id="acc-currpwd" type="password" autocomplete="current-password" /></div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">Username</label>
+            <input class="ll-input" id="acc-username" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
+          </div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">First Name</label>
+            <input class="ll-input" id="acc-firstname" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
+          </div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">Last Name</label>
+            <input class="ll-input" id="acc-lastname" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
+          </div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">Email</label>
+            <input class="ll-input" id="acc-email" type="email" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
+          </div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">New Password</label>
+            <input class="ll-input" id="acc-newpwd" type="password" autocomplete="new-password" style="background:#374151; border:1px solid #4b5563; color:#fff;" placeholder="Leave blank to keep current password" />
+          </div>
+          <div class="ll-field">
+            <label class="ll-label" style="color:#e5e7eb;">Current Password</label>
+            <input class="ll-input" id="acc-currpwd" type="password" autocomplete="current-password" style="background:#374151; border:1px solid #4b5563; color:#fff;" placeholder="Required only if changing password" />
+          </div>
         </div>
         <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #374151; background:#111827;">
           <button class="ll-btn" id="account-settings-cancel" style="background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>

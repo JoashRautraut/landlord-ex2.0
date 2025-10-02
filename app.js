@@ -18,26 +18,56 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== Account Settings Modal Logic =====
-function getCurrentUserFromStorage() {
+// Store current user session (simple demo - in production use proper session management)
+window.currentUser = null;
+
+function setCurrentUser(userData) {
+  window.currentUser = userData;
+  try {
+    localStorage.setItem('ll_current_user', JSON.stringify(userData));
+  } catch {}
+}
+
+function getCurrentUser() {
+  if (window.currentUser) return window.currentUser;
   try {
     const raw = localStorage.getItem('ll_current_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+    if (raw) {
+      window.currentUser = JSON.parse(raw);
+      return window.currentUser;
+    }
+  } catch {}
+  return null;
 }
 
 function openAccountSettingsModal() {
   const modal = document.getElementById('account-settings-modal');
   if (!modal) return;
-  const user = getCurrentUserFromStorage();
-  if (user) {
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
-    set('acc-username', user.username);
-    set('acc-firstname', user.user_firstname);
-    set('acc-lastname', user.user_lastname);
-    set('acc-email', user.user_email);
-    const np = document.getElementById('acc-newpwd'); if (np) np.value = '';
-    const cp = document.getElementById('acc-currpwd'); if (cp) cp.value = '';
+  
+  // For demo purposes, create a sample user if none exists
+  let user = getCurrentUser();
+  if (!user) {
+    user = {
+      user_id: 1,
+      username: 'admin',
+      user_firstname: 'Admin',
+      user_lastname: 'User',
+      user_email: 'admin@dar.gov.ph',
+      role: 'office'
+    };
+    setCurrentUser(user);
   }
+  
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+  set('acc-username', user.username);
+  set('acc-firstname', user.user_firstname);
+  set('acc-lastname', user.user_lastname);
+  set('acc-email', user.user_email);
+  
+  // Clear password fields
+  const np = document.getElementById('acc-newpwd'); if (np) np.value = '';
+  const cp = document.getElementById('acc-currpwd'); if (cp) cp.value = '';
+  
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
@@ -50,8 +80,11 @@ function closeAccountSettingsModal() {
 }
 
 async function saveAccountSettings() {
-  const user = getCurrentUserFromStorage();
-  if (!user) { alert('No current user in session. Please sign in again.'); return; }
+  const user = getCurrentUser();
+  if (!user) { 
+    alert('No current user in session. Please sign in again.'); 
+    return; 
+  }
 
   const username = (document.getElementById('acc-username')?.value || '').trim();
   const user_firstname = (document.getElementById('acc-firstname')?.value || '').trim();
@@ -60,52 +93,112 @@ async function saveAccountSettings() {
   const newPassword = (document.getElementById('acc-newpwd')?.value || '').trim();
   const currPassword = (document.getElementById('acc-currpwd')?.value || '').trim();
 
-  // If changing password, require current password to match existing (client-side check since using plaintext field)
-  if (newPassword) {
-    // Fetch current row to verify current password
-    const { data: existing, error: fetchErr } = await supabase
-      .from('users')
-      .select('user_password')
-      .eq('user_id', user.user_id)
-      .single();
-    if (fetchErr) { alert('Unable to verify current password.'); return; }
-    if (String(existing?.user_password ?? '') !== String(currPassword)) {
-      alert('Current password is incorrect.');
+  // Basic validation
+  if (!username || !user_email) {
+    alert('Username and email are required.');
+    return;
+  }
+
+  // If changing password, require current password
+  if (newPassword && !currPassword) {
+    alert('Please enter your current password to change your password.');
+    return;
+  }
+
+  try {
+    // If changing password, verify current password first
+    if (newPassword) {
+      const { data: existing, error: fetchErr } = await supabase
+        .from('users')
+        .select('user_password')
+        .eq('user_id', user.user_id)
+        .single();
+      
+      if (fetchErr) { 
+        alert('Unable to verify current password: ' + fetchErr.message); 
+        return; 
+      }
+      
+      if (String(existing?.user_password ?? '') !== String(currPassword)) {
+        alert('Current password is incorrect.');
+        return;
+      }
+    }
+
+    // Prepare update object
+    const update = {};
+    if (username !== user.username) update.username = username;
+    if (user_firstname !== user.user_firstname) update.user_firstname = user_firstname;
+    if (user_lastname !== user.user_lastname) update.user_lastname = user_lastname;
+    if (user_email !== user.user_email) update.user_email = user_email;
+    if (newPassword) update.user_password = newPassword;
+
+    // Only update if there are changes
+    if (Object.keys(update).length === 0) {
+      alert('No changes to save.');
       return;
     }
-  }
 
-  const update = { username, user_firstname, user_lastname, user_email };
-  if (!username) delete update.username;
-  if (!user_firstname) delete update.user_firstname;
-  if (!user_lastname) delete update.user_lastname;
-  if (!user_email) delete update.user_email;
-  if (newPassword) update.user_password = newPassword;
-
-  const { data: updated, error } = await supabase
-    .from('users')
-    .update(update)
-    .eq('user_id', user.user_id)
-    .select('user_id, username, user_email, user_firstname, user_lastname, role, active')
-    .maybeSingle();
-  if (error) { alert('Failed to update account: ' + error.message); return; }
-  if (updated) {
-    try { localStorage.setItem('ll_current_user', JSON.stringify(updated)); } catch {}
+    // Update in database
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update(update)
+      .eq('user_id', user.user_id)
+      .select('user_id, username, user_email, user_firstname, user_lastname, role, active')
+      .single();
+    
+    if (error) { 
+      alert('Failed to update account: ' + error.message); 
+      return; 
+    }
+    
+    if (updated) {
+      // Update current user session
+      setCurrentUser(updated);
+    }
+    
+    closeAccountSettingsModal();
+    alert('Account updated successfully.');
+    
+  } catch (error) {
+    console.error('Error updating account:', error);
+    alert('An error occurred while updating your account.');
   }
-  closeAccountSettingsModal();
-  alert('Account updated successfully.');
 }
 
-// Wire modal buttons and optional open triggers
+// Initialize account settings when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  const openBtn = document.getElementById('open-account-settings');
-  if (openBtn) openBtn.onclick = openAccountSettingsModal;
+  // Wire up the modal buttons
   const closeBtn = document.getElementById('account-settings-close');
   if (closeBtn) closeBtn.onclick = closeAccountSettingsModal;
+  
   const cancelBtn = document.getElementById('account-settings-cancel');
   if (cancelBtn) cancelBtn.onclick = closeAccountSettingsModal;
+  
   const saveBtn = document.getElementById('account-settings-save');
   if (saveBtn) saveBtn.onclick = saveAccountSettings;
+  
+  // Wire up the settings menu button (this should already be done in the existing code)
+  const accountBtn = document.getElementById('account-settings-item');
+  if (accountBtn) {
+    accountBtn.onclick = function() {
+      // Close the settings menu first
+      const menu = document.getElementById('global-settings-menu');
+      if (menu) menu.style.display = 'none';
+      // Open the account settings modal
+      openAccountSettingsModal();
+    };
+  }
+  
+  // ESC key to close modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('account-settings-modal');
+      if (modal && modal.style.display === 'flex') {
+        closeAccountSettingsModal();
+      }
+    }
+  });
 });
 
 // Fetch users from Supabase and populate the user management table
