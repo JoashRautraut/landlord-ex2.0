@@ -8,28 +8,76 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
-    <!-- Header and burger button copied -->
-    <div class="box">
-        <button id="burger-btn" aria-label="Open navigation">
-            <span class="burger-line"></span>
-            <span class="burger-line"></span>
-            <span class="burger-line"></span>
-        </button>
-        <h1>LANDLORD</h1>
-        <img id="dp" src="https://tse2.mm.bing.net/th?id=OIP.yYUwl3GDU07Q5J5ttyW9fQHaHa&pid=Api&P=0&h=220"
-            alt="User Icon" onclick="showLogoutConfirmation()" style="cursor: pointer;">
+    <!-- Header with top navbar -->
+    <div class="admin-header">
+      <div class="admin-header-inner">
+        <div class="brand" style="margin-left:6px;">
+          <img src="dar_logo.png" alt="DAR logo" class="brand-logo" style="margin:0;">
+          <div class="brand-text">
+            <div class="brand-title">LANDLORD Admin</div>
+            <div class="brand-sub">Operations dashboard</div>
+          </div>
+        </div>
+        <div class="header-actions" style="position:relative;">
+          <button id="admin-settings-btn" aria-label="Settings" title="Settings" class="settings-btn">⚙️</button>
+          <div id="admin-settings-menu" class="settings-menu" style="display:none;">
+            <button id="admin-logout" class="settings-item danger">Log out</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-subnav">
+        <a href="#profile" data-target="profile" class="subnav-link active" onclick="navigateTo('profile'); return false;">User Management</a>
+        <a href="#workspace" data-target="workspace" class="subnav-link" onclick="navigateTo('workspace'); return false;">Activity Logs</a>
+      </div>
     </div>
+    <style>
+      :root { --bg: linear-gradient(135deg, #202124 0%, #23272f 100%); --fg:#e4e6eb; --muted:#a6b0a9; --surface:#1e2024; --border:#2a3138; --accent:#f97316; --accent-strong:#ea580c; --accent-weak:#3a2a22; --accent-gradient: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%); }
+      html, body { background: radial-gradient(1200px 500px at 70% -10%, rgba(255,122,24,0.18), transparent 60%), var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
 
-    <!-- Sidebar nav so burger works -->
-    <nav>
-        <button id="sidebar-back-btn" aria-label="Close sidebar" style="display:none; margin:14px 0 6px 10px; background:none; border:none; color:#ffd600; font-size:1.2em; font-weight:600; cursor:pointer; padding:4px 10px; border-radius:6px;">
-          <span style="font-size:1.3em;vertical-align:middle;">&#8592;</span> <span style="font-size:0.98em;vertical-align:middle;">Back</span>
-        </button>
-        <ul>
-            <li><a href="#" onclick="navigateTo('profile'); closeSidebar();">USER MANAGEMENT</a></li>
-            <li><a href="#" onclick="navigateTo('workspace'); closeSidebar();">ACTIVITY LOGS</a></li>
-        </ul>
-    </nav>
+      .admin-header { position: sticky; top: 0; z-index: 3100; background: var(--surface); border-bottom: 1px solid var(--border); }
+      .admin-header-inner { width: 100%; margin: 0; padding: 8px 12px; display:flex; align-items:center; justify-content: space-between; }
+      .brand { display:flex; align-items:center; gap: 10px; }
+      .brand-logo { width: 42px; height: 42px; border-radius: 8px; background:#fff; padding:4px; border:1px solid var(--border); }
+      .brand-text { color: var(--fg); line-height:1.15; }
+      .brand-title { font-weight:800; letter-spacing:.2px; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .brand-sub { font-size:.85rem; color: var(--muted); }
+      .settings-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); cursor:pointer; font-size: 18px; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+      .settings-btn:hover { background: #fff; border-color: var(--accent); color: var(--accent-strong); }
+      .settings-menu { position:absolute; right:0; top:42px; min-width:180px; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow: 0 8px 24px rgba(15,23,42,.08); padding:6px; z-index:3200; }
+      .settings-item { width:100%; text-align:left; background:none; border:none; padding:10px 12px; border-radius:8px; cursor:pointer; font-weight:600; color:var(--fg); transition: background .15s ease, color .15s ease; }
+      .settings-item:hover { background: var(--accent-weak); color: var(--accent-strong); }
+      .settings-item.danger { color:#b91c1c; font-weight:700; }
+
+      .admin-subnav { background: var(--surface); border-top: 1px solid var(--border); position: sticky; top: 54px; z-index: 900; }
+      .admin-subnav { display:flex; gap: 20px; padding: 10px 16px; justify-content: center; }
+      .subnav-link { font-weight:700; font-size:.9rem; color:#334155; text-decoration:none; padding:8px 12px; border-radius:8px; transition: color .15s ease, background .15s ease, box-shadow .15s ease; }
+      .subnav-link:hover { color: var(--accent-strong); background: #fff7ed; }
+      .subnav-link:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px rgba(249, 115, 22, .35); }
+      .subnav-link.active { color: var(--accent-strong); background-image: linear-gradient( to right, rgba(255,122,24,.15), rgba(255,77,0,.12) ); }
+
+      /* Admin content spacing */
+      main.container { padding: 20px 16px; }
+      /* Tables inspired by index.html dark theme */
+      .account-table, .activity-log-table { background: rgba(35,39,47,0.98); color: #e4e6eb; border: 1.5px solid #23272f; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border-radius: 8px; overflow: hidden; }
+      .account-table th, .activity-log-table th, .account-table td, .activity-log-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #292b32; vertical-align: middle; background: transparent; }
+      .account-table th, .activity-log-table th { background: rgba(35,39,47,0.98); color: #ff7a18; font-size: 1em; font-weight: 700; border-bottom: 1.5px solid #292b32; }
+      .account-table tr:last-child td, .activity-log-table tr:last-child td { border-bottom: none; }
+
+      /* Inputs and buttons (modals) */
+      #edit-user-modal .modal-content, #add-technician-modal .modal-content { border: 1px solid var(--border); background: var(--surface); }
+      input[type="text"], input[type="email"], select { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: #fff; color: var(--fg); transition: border-color .15s ease, box-shadow .15s ease; }
+      input[type="text"]:hover, input[type="email"]:hover, select:hover { border-color: #f59e0b; }
+      input[type="text"]:focus, input[type="email"]:focus, select:focus { outline: 2px solid transparent; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(249, 115, 22, .25); }
+      .modal-btn { border: 1px solid var(--border); background: var(--surface); color: var(--fg); border-radius: 10px; padding: 10px 14px; font-weight: 700; transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease; }
+      .modal-btn.save, .add-tech-save-btn { background: var(--accent-gradient); color: #fff; border-color: transparent; }
+      .modal-btn.save:hover, .add-tech-save-btn:hover { filter: saturate(1.05) brightness(1.02); box-shadow: 0 6px 18px rgba(255, 122, 24, .28); }
+      .modal-btn.cancel, .add-tech-cancel-btn { background: #fff; }
+      .modal-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
+      .modal-btn:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px rgba(249, 115, 22, .35); }
+
+      /* Table hovers aligned to dark theme */
+      .account-table tbody tr:hover, .activity-log-table tbody tr:hover { background: #292b32; color: #ffd7c2; }
+    </style>
 
     <!-- Dummy map container to satisfy shared scripts that may call navigateTo('map') -->
     <main id="map" class="container" style="display:none;"></main>
@@ -237,6 +285,7 @@
     <!-- Enhanced Add Technician Modal -->
     <div id="add-technician-modal">
       <div class="modal-content">
+        
         <h2 class="modal-title">Add New Technician</h2>
         <button id="close-add-technician-modal" class="modal-close-btn" aria-label="Close modal">&times;</button>
         
@@ -280,41 +329,43 @@
         </div>
     </div>
 
-    <!-- Burger/sidebar logic -->
+    <!-- Simple navigation logic -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var burger = document.getElementById('burger-btn');
-      var nav = document.querySelector('nav');
-      if (burger && nav) {
-        burger.addEventListener('click', function(e) {
-          nav.classList.toggle('open');
-          e.stopPropagation();
-        });
-        window.addEventListener('resize', function() {
-          if (window.innerWidth > 900) nav.classList.remove('open');
-        });
-        document.addEventListener('click', function(e) {
-          if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== burger) {
-            nav.classList.remove('open');
-          }
-        });
-      }
-    });
-    function closeSidebar() {
-      var nav = document.querySelector('nav');
-      if (nav) nav.classList.remove('open');
-    }
+    function closeSidebar() {}
     // Simple section switcher for this page
     function navigateTo(sectionId) {
       document.querySelectorAll('main.container').forEach(function(section){ section.style.display = 'none'; });
       var el = document.getElementById(sectionId);
       if (el) el.style.display = 'block';
     }
+    // Settings dropdown and logout
+    document.addEventListener('DOMContentLoaded', function(){
+      var btn = document.getElementById('admin-settings-btn');
+      var menu = document.getElementById('admin-settings-menu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e){
+          e.stopPropagation();
+          menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+        });
+        document.addEventListener('click', function(e){
+          if (menu.style.display === 'block' && !menu.contains(e.target) && e.target !== btn) {
+            menu.style.display = 'none';
+          }
+        });
+      }
+      var logoutBtn = document.getElementById('admin-logout');
+      if (logoutBtn) logoutBtn.onclick = function(){ showLogoutConfirmation(); };
+    });
     // Hash navigation support
     document.addEventListener('DOMContentLoaded', function() {
       var hash = window.location.hash.replace('#', '');
       if (hash && document.getElementById(hash)) { navigateTo(hash); }
       else { navigateTo('profile'); }
+      // Set active tab
+      var links = document.querySelectorAll('.subnav-link');
+      function setActive(id){ links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('data-target')===id); }); }
+      setActive(hash || 'profile');
+      links.forEach(function(a){ a.addEventListener('click', function(){ setActive(a.getAttribute('data-target')); }); });
     });
     </script>
 

@@ -979,6 +979,132 @@ const EARTH_RADIUS_M = 6371000;
 // Default origin: Lingi-on (Tie Line Start)
 const referenceOrigin = { lat: 8.400, lng: 124.883, name: 'Lingi-on' };
 
+// --- proj4 loader and PRS92 Zone 3 definition ---
+let _proj4Loading = false;
+function _ensureProj4Loaded() {
+  if (window.proj4) {
+    if (!proj4.defs['PRS92_ZONE3']) {
+      proj4.defs('PRS92_ZONE3', '+proj=tmerc +lat_0=0 +lon_0=124 +k=0.99995 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs');
+    }
+    return true;
+  }
+  if (_proj4Loading) return false;
+  _proj4Loading = true;
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js';
+  s.async = true;
+  s.onload = function() {
+    try {
+      if (!proj4.defs['PRS92_ZONE3']) {
+        proj4.defs('PRS92_ZONE3', '+proj=tmerc +lat_0=0 +lon_0=124 +k=0.99995 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs');
+      }
+    } catch (e) { console.warn('proj4 load but defs failed', e); }
+  };
+  s.onerror = function() { console.warn('Failed to load proj4'); };
+  document.head.appendChild(s);
+  return false;
+}
+
+function _isPRS92Candidate(easting, northing) {
+  return (
+    typeof easting === 'number' && typeof northing === 'number' &&
+    easting > 200000 && easting < 400000 &&
+    northing > 800000 && northing < 1200000
+  );
+}
+
+function _convertPRS92ToWGS84(easting, northing) {
+  if (!window.proj4 || !proj4.defs['PRS92_ZONE3']) return null;
+  try {
+    const res = proj4('PRS92_ZONE3', 'WGS84', [easting, northing]);
+    if (!Array.isArray(res) || res.length < 2) return null;
+    const lon = res[0];
+    const lat = res[1];
+    if (isNaN(lat) || isNaN(lon)) return null;
+    return { lat, lng: lon };
+  } catch (e) {
+    console.warn('PRS92->WGS84 conversion failed', e);
+    return null;
+  }
+}
+
+// --- Affine transform setup (local survey E/N -> WGS84 lat/lng) ---
+// Example control points - replace with your own as needed
+const _affineLocalPoints = [
+  { E: 23198.620, N: 23425.240 },
+  { E: 23519.570, N: 23111.940 },
+  { E: 23301.590, N: 23064.430 },
+  { E: 23018.230, N: 23203.940 }
+];
+const _affineGpsPoints = [
+  { lat: 8.398673, lon: 124.894305 },
+  { lat: 8.398230, lon: 124.895121 },
+  { lat: 8.397676, lon: 124.894605 },
+  { lat: 8.398102, lon: 124.893790 }
+];
+
+// Solve affine parameters for mapping:
+// lat = a*E + b*N + c
+// lon = d*E + e*N + f
+function _solveAffine(localPts, gpsPts) {
+  const cols = 6;
+  let AtA = Array.from({ length: cols }, () => Array(cols).fill(0));
+  let Atb = Array(cols).fill(0);
+
+  for (let i = 0; i < localPts.length; i++) {
+    const { E, N } = localPts[i];
+    const { lat, lon } = gpsPts[i];
+
+    const r1 = [E, N, 1, 0, 0, 0];
+    const r2 = [0, 0, 0, E, N, 1];
+
+    for (let p = 0; p < cols; p++) {
+      for (let q = 0; q < cols; q++) {
+        AtA[p][q] += r1[p] * r1[q] + r2[p] * r2[q];
+      }
+      Atb[p] += r1[p] * lat + r2[p] * lon;
+    }
+  }
+
+  // Gaussian elimination
+  let M = AtA.map((row, i) => row.concat([Atb[i]]));
+  const n = M.length;
+
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+    }
+    [M[i], M[maxRow]] = [M[maxRow], M[i]];
+    if (Math.abs(M[i][i]) < 1e-12) throw new Error('Singular system');
+
+    const piv = M[i][i];
+    for (let j = i; j <= n; j++) M[i][j] /= piv;
+
+    for (let r = 0; r < n; r++) {
+      if (r === i) continue;
+      const factor = M[r][i];
+      for (let c = i; c <= n; c++) M[r][c] -= factor * M[i][c];
+    }
+  }
+  return M.map(row => row[n]); // [a, b, c, d, e, f]
+}
+
+function _localToLatLng(params, E, N) {
+  const [a, b, c, d, e, f] = params;
+  return { lat: a * E + b * N + c, lng: d * E + e * N + f };
+}
+
+let _affineParams = null;
+try {
+  if (_affineLocalPoints.length >= 3 && _affineLocalPoints.length === _affineGpsPoints.length) {
+    _affineParams = _solveAffine(_affineLocalPoints, _affineGpsPoints);
+    // console.log('Affine parameters:', _affineParams);
+  }
+} catch (err) {
+  console.warn('Affine solve failed:', err);
+}
+
 // Convert lat/lon to local Northing/Easting (meters) relative to origin
 function latLonToNE(lat, lng, lat0, lng0) {
   const dPhi = toRadians(lat - lat0);
@@ -1008,25 +1134,72 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
   return R * c;
 }
 
-// Transform survey coordinates to lat/lng using Tie Line method
+// Transform survey coordinates to lat/lng using BLUM 1 GSS 549 formula
 function transformSurveyToLatLng(easting, northing) {
-  // Use the starting easting/northing as the local origin in meters,
-  // and anchor it to a fixed geographic reference origin (referenceOrigin)
-  const startE = parseFloat(document.getElementById('starting-easting').value.replace(/[^\d.-]/g, '')) || 20000;
-  const startN = parseFloat(document.getElementById('starting-northing').value.replace(/[^\d.-]/g, '')) || 20000;
+  // ===== BLUM 1 GSS 549 CONFIG ===== //
+  const TPN = 20000.000;   // Tie Point Northing
+  const TPL = 20000.000;   // Tie Point Easting
 
+  // Tie Point Latitude & Longitude in DMS, then converted to decimal
+  // Latitude: 8°22'16.20" N = 8 + 22/60 + 16.20/3600 = 8.3711666667
+  // Longitude: 124°51'46.97" E = 124 + 51/60 + 46.97/3600 = 124.8630472222
+  const tieLat = 8 + 22/60 + 16.20/3600;    // 8.3711666667
+  const tieLon = 124 + 51/60 + 46.97/3600;  // 124.8630472222
+
+  // Constants from BLUM 1 GSS 549
+  const CONST_N = 30.720;  // For latitude
+  const CONST_E = 30.595;  // For longitude
+
+  // ===== BLUM 1 GSS 549 CONVERSION ===== //
+  // Step 1: Calculate differences (P1N - TPN, P1E - TPL)  
+  const deltaN = northing - TPN;  // P1N - TPN
+  const deltaE = easting - TPL;   // P1E - TPL
+
+  // Step 2: Convert to arc-seconds using constants
+  const secLat = deltaN / CONST_N;    // Δns ÷ constant N
+  const secLon = deltaE / CONST_E;    // Δns ÷ constant E
+
+  // Step 3: Add arc-seconds to tie point coordinates (DMS arithmetic)
+  // Tie point DMS components
+  let latDeg = 8, latMin = 22, latSec = 16.20;
+  let lonDeg = 124, lonMin = 51, lonSec = 46.97;
+
+  // Add the calculated seconds to the DMS components
+  latSec += secLat;
+  lonSec += secLon;
+
+  // Handle seconds overflow into minutes
+  if (latSec >= 60) {
+    latMin += Math.floor(latSec / 60);
+    latSec = latSec % 60;
+  }
+  if (lonSec >= 60) {
+    lonMin += Math.floor(lonSec / 60);
+    lonSec = lonSec % 60;
+  }
+
+  // Handle minutes overflow into degrees
+  if (latMin >= 60) {
+    latDeg += Math.floor(latMin / 60);
+    latMin = latMin % 60;
+  }
+  if (lonMin >= 60) {
+    lonDeg += Math.floor(lonMin / 60);
+    lonMin = lonMin % 60;
+  }
+
+  // Step 4: Convert final DMS to decimal degrees
+  const lat = latDeg + (latMin / 60) + (latSec / 3600);
+  const lng = lonDeg + (lonMin / 60) + (lonSec / 3600);
+  
+  // Calculate distance and azimuth for compatibility with existing code
+  const startE = parseFloat(document.getElementById('starting-easting')?.value?.replace(/[^\d.-]/g, '')) || 20000;
+  const startN = parseFloat(document.getElementById('starting-northing')?.value?.replace(/[^\d.-]/g, '')) || 20000;
   const deltaEasting = easting - startE;
   const deltaNorthing = northing - startN;
-
   const distance = Math.sqrt(deltaEasting * deltaEasting + deltaNorthing * deltaNorthing);
   let azimuth = Math.atan2(deltaEasting, deltaNorthing) * (180 / Math.PI);
   if (azimuth < 0) azimuth += 360;
-
-  const latScale = 1 / 111320; // meters per degree latitude (approx)
-  const lngScale = 1 / (111320 * Math.cos(toRadians(referenceOrigin.lat))); // meters per degree longitude (approx)
-
-  const lat = referenceOrigin.lat + (deltaNorthing * latScale);
-  const lng = referenceOrigin.lng + (deltaEasting * lngScale);
 
   return { lat, lng, distance, azimuth };
 }
@@ -1268,10 +1441,10 @@ function loadSampleData() {
   // Realistic sample data for Manolo Fortich, Bukidnon area
   // Based on typical land survey measurements in the Philippines
   const samplePoints = [
-    { name: 'Point 1', northing: 20125.450, easting: 20089.320 },
-    { name: 'Point 2', northing: 20098.780, easting: 20165.890 },
-    { name: 'Point 3', northing: 20045.120, easting: 20142.650 },
-    { name: 'Point 4', northing: 20072.340, easting: 20066.180 }
+    { name: 'Point 1', northing: 23425.240, easting: 23198.620 },
+    { name: 'Point 2', northing: 23111.940, easting: 23519.570 },
+    { name: 'Point 3', northing: 23064.430, easting: 23301.590 },
+    { name: 'Point 4', northing: 23203.940, easting: 23018.230 }
   ];
   
   samplePoints.forEach((data, index) => {
