@@ -3729,6 +3729,133 @@ body.blurred > *:not(#logout-confirmation) {
   }
 }
 
+/* Logout Confirmation Modal */
+.logout-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.logout-modal.show {
+  display: flex;
+}
+
+.logout-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Blur the background content when logout modal is open */
+body.logout-modal-open {
+  overflow: hidden;
+}
+
+body.logout-modal-open > *:not(#logout-confirmation) {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+}
+
+body.logout-modal-open #logout-confirmation {
+  filter: none;
+}
+
+.logout-modal-content {
+  position: relative;
+  background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
+  color: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 320px;
+  max-width: 400px;
+  width: 90%;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.logout-modal-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.logout-modal-header p {
+  margin: 0 0 20px 0;
+  opacity: 0.95;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.logout-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+.logout-btn-cancel {
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.logout-btn-cancel:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+.logout-btn-confirm {
+  background: #1f2937;
+  color: #ffffff;
+}
+
+.logout-btn-confirm:hover {
+  background: #111827;
+  transform: translateY(-1px);
+}
+
+/* Mobile responsive logout modal */
+@media (max-width: 480px) {
+  .logout-modal-content {
+    padding: 20px;
+    min-width: 280px;
+  }
+  
+  .logout-modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .logout-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+  }
+}
+
 @keyframes modalSlideIn {
   from {
     transform: scale(0.95) translateY(10px);

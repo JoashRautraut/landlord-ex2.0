@@ -636,7 +636,7 @@
               const logoutBtn = document.getElementById('logout-item');
               if (logoutBtn) logoutBtn.onclick = function(){
                 menu.style.display = 'none';
-                document.getElementById('logout-confirmation').style.display = 'block';
+                showLogoutConfirmation();
               };
             }
             // Land holdings burger toggle
@@ -655,8 +655,7 @@
             const logoutYes = document.getElementById('logout-yes');
             const logoutNo = document.getElementById('logout-no');
             if (logoutYes) logoutYes.onclick = function(){
-              var modal = document.getElementById('logout-confirmation');
-              if (modal) modal.style.display = 'none';
+              hideLogoutConfirmation();
               var splash = document.getElementById('dar-splash');
               if (splash) {
                 splash.style.display = 'flex';
@@ -665,7 +664,17 @@
                 window.location.href = 'index.html';
               }
             };
-            if (logoutNo) logoutNo.onclick = function(){ document.getElementById('logout-confirmation').style.display = 'none'; };
+            if (logoutNo) logoutNo.onclick = function(){ hideLogoutConfirmation(); };
+            
+            // Close logout modal when clicking on overlay
+            const logoutModal = document.getElementById('logout-confirmation');
+            if (logoutModal) {
+              logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal || e.target.classList.contains('logout-modal-overlay')) {
+                  hideLogoutConfirmation();
+                }
+              });
+            }
         });
 
         function initManoloFortichMap() {
@@ -1021,15 +1030,19 @@
     <!-- Activity Logs moved to admin.html -->
 
     </div>
-    <div id="logout-confirmation" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-      background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%); color:#fff; padding: 22px 24px; border-radius: 14px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.2); z-index: 1600; min-width: 260px;">
-        <h3 style="margin:0 0 8px 0; font-size:1.1rem; font-weight:800; letter-spacing:.2px;">Confirm Logout</h3>
-        <p style="margin:0 0 14px 0; opacity:.9;">Are you sure you want to log out?</p>
-        <div style="display:flex; gap:8px; justify-content:flex-end;">
-          <button id="logout-no" style="background:#ffffff; color:#1f2937; border: none; padding:8px 14px; border-radius:10px; font-weight:700; cursor:pointer;">Cancel</button>
-          <button id="logout-yes" style="background:#1f2937; color:#fff; border:none; padding:8px 14px; border-radius:10px; font-weight:800; cursor:pointer;">Log out</button>
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-confirmation" class="logout-modal" style="display: none;">
+      <div class="logout-modal-overlay"></div>
+      <div class="logout-modal-content">
+        <div class="logout-modal-header">
+          <h3>Confirm Logout</h3>
+          <p>Are you sure you want to log out?</p>
         </div>
+        <div class="logout-modal-actions">
+          <button id="logout-no" class="logout-btn logout-btn-cancel">Cancel</button>
+          <button id="logout-yes" class="logout-btn logout-btn-confirm">Log out</button>
+        </div>
+      </div>
     </div>
 
     <!-- Account Settings Modal -->
@@ -1212,14 +1225,22 @@
 <!-- Add Technician Modal moved to admin.html -->
 
 <script>
-// Blur background when logout modal is shown
+// Show logout confirmation with blur background
 function showLogoutConfirmation() {
-  document.getElementById('logout-confirmation').style.display = 'block';
-  document.body.classList.add('blurred');
+  const modal = document.getElementById('logout-confirmation');
+  if (modal) {
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    document.body.classList.add('logout-modal-open');
+  }
 }
 function hideLogoutConfirmation() {
-  document.getElementById('logout-confirmation').style.display = 'none';
-  document.body.classList.remove('blurred');
+  const modal = document.getElementById('logout-confirmation');
+  if (modal) {
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+    document.body.classList.remove('logout-modal-open');
+  }
 }
 // Hash-based navigation: show the correct section if hash is present
 document.addEventListener('DOMContentLoaded', function() {
