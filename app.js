@@ -1031,41 +1031,72 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
   return R * c;
 }
 
-// Transform survey coordinates to lat/lng using Tie Line method
+// Transform survey coordinates to lat/lng using BLUM 1 GSS 549 formula
 function transformSurveyToLatLng(easting, northing) {
-  // Preserve distance and azimuth relative to the user-provided start E/N
-  const startE = parseFloat(document.getElementById('starting-easting').value.replace(/[^\d.-]/g, '')) || 20000;
-  const startN = parseFloat(document.getElementById('starting-northing').value.replace(/[^\d.-]/g, '')) || 20000;
+  // ===== BLUM 1 GSS 549 CONFIG ===== //
+  const TPN = 20000.000;   // Tie Point Northing
+  const TPL = 20000.000;   // Tie Point Easting
 
+  // Tie Point Latitude & Longitude in DMS, then converted to decimal
+  // Latitude: 8°22'16.20" N = 8 + 22/60 + 16.20/3600 = 8.3711666667
+  // Longitude: 124°51'46.97" E = 124 + 51/60 + 46.97/3600 = 124.8630472222
+  const tieLat = 8 + 22/60 + 16.20/3600;    // 8.3711666667
+  const tieLon = 124 + 51/60 + 46.97/3600;  // 124.8630472222
+
+  // Constants from BLUM 1 GSS 549
+  const CONST_N = 30.720;  // For latitude
+  const CONST_E = 30.595;  // For longitude
+
+  // ===== BLUM 1 GSS 549 CONVERSION ===== //
+  // Step 1: Calculate differences (P1N - TPN, P1E - TPL)  
+  const deltaN = northing - TPN;  // P1N - TPN
+  const deltaE = easting - TPL;   // P1E - TPL
+
+  // Step 2: Convert to arc-seconds using constants
+  const secLat = deltaN / CONST_N;    // Δns ÷ constant N
+  const secLon = deltaE / CONST_E;    // Δns ÷ constant E
+
+  // Step 3: Add arc-seconds to tie point coordinates (DMS arithmetic)
+  // Tie point DMS components
+  let latDeg = 8, latMin = 22, latSec = 16.20;
+  let lonDeg = 124, lonMin = 51, lonSec = 46.97;
+
+  // Add the calculated seconds to the DMS components
+  latSec += secLat;
+  lonSec += secLon;
+
+  // Handle seconds overflow into minutes
+  if (latSec >= 60) {
+    latMin += Math.floor(latSec / 60);
+    latSec = latSec % 60;
+  }
+  if (lonSec >= 60) {
+    lonMin += Math.floor(lonSec / 60);
+    lonSec = lonSec % 60;
+  }
+
+  // Handle minutes overflow into degrees
+  if (latMin >= 60) {
+    latDeg += Math.floor(latMin / 60);
+    latMin = latMin % 60;
+  }
+  if (lonMin >= 60) {
+    lonDeg += Math.floor(lonMin / 60);
+    lonMin = lonMin % 60;
+  }
+
+  // Step 4: Convert final DMS to decimal degrees
+  const lat = latDeg + (latMin / 60) + (latSec / 3600);
+  const lng = lonDeg + (lonMin / 60) + (lonSec / 3600);
+  
+  // Calculate distance and azimuth for compatibility with existing code
+  const startE = parseFloat(document.getElementById('starting-easting')?.value?.replace(/[^\d.-]/g, '')) || 20000;
+  const startN = parseFloat(document.getElementById('starting-northing')?.value?.replace(/[^\d.-]/g, '')) || 20000;
   const deltaEasting = easting - startE;
   const deltaNorthing = northing - startN;
-
   const distance = Math.sqrt(deltaEasting * deltaEasting + deltaNorthing * deltaNorthing);
   let azimuth = Math.atan2(deltaEasting, deltaNorthing) * (180 / Math.PI);
   if (azimuth < 0) azimuth += 360;
-
-  // Prefer PRS92 tmerc conversion if candidate; then affine; then simple fallback
-  let lat, lng;
-  if (_isPRS92Candidate(easting, northing)) {
-    const ready = _ensureProj4Loaded();
-    if (ready) {
-      const w = _convertPRS92ToWGS84(easting, northing);
-      if (w && !isNaN(w.lat) && !isNaN(w.lng)) {
-        lat = w.lat; lng = w.lng;
-      }
-    }
-  }
-  if (_affineParams && (lat === undefined || lng === undefined)) {
-    const res = _localToLatLng(_affineParams, easting, northing);
-    lat = res.lat;
-    lng = res.lng;
-  }
-  if (lat === undefined || lng === undefined) {
-    const latScale = 1 / 111320; // meters per degree latitude (approx)
-    const lngScale = 1 / (111320 * Math.cos(toRadians(referenceOrigin.lat))); // meters per degree longitude (approx)
-    lat = referenceOrigin.lat + (deltaNorthing * latScale);
-    lng = referenceOrigin.lng + (deltaEasting * lngScale);
-  }
 
   return { lat, lng, distance, azimuth };
 }
@@ -1307,10 +1338,10 @@ function loadSampleData() {
   // Realistic sample data for Manolo Fortich, Bukidnon area
   // Based on typical land survey measurements in the Philippines
   const samplePoints = [
-    { name: 'Point 1', northing: 20125.450, easting: 20089.320 },
-    { name: 'Point 2', northing: 20098.780, easting: 20165.890 },
-    { name: 'Point 3', northing: 20045.120, easting: 20142.650 },
-    { name: 'Point 4', northing: 20072.340, easting: 20066.180 }
+    { name: 'Point 1', northing: 23425.240, easting: 23198.620 },
+    { name: 'Point 2', northing: 23111.940, easting: 23519.570 },
+    { name: 'Point 3', northing: 23064.430, easting: 23301.590 },
+    { name: 'Point 4', northing: 23203.940, easting: 23018.230 }
   ];
   
   samplePoints.forEach((data, index) => {
