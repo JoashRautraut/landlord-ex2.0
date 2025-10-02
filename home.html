@@ -1028,6 +1028,28 @@
         </div>
     </div>
 
+    <!-- Account Settings Modal -->
+    <div id="account-settings-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 3001;">
+      <div class="ll-modal-card" style="background:#1f2937; color:#e5e7eb; padding:0; border-radius:12px; width: min(560px, 94vw); box-shadow:0 12px 32px rgba(0,0,0,.32); border:1px solid #374151; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #374151; background:#111827;">
+          <h3 style="margin:0; font-size:1.06em; color:#fff;">Edit Account</h3>
+          <button id="account-settings-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.2em;">×</button>
+        </div>
+        <div style="padding:16px; display:grid; gap:12px 14px;">
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Username</label><input class="ll-input" id="acc-username" type="text" /></div>
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">First Name</label><input class="ll-input" id="acc-firstname" type="text" /></div>
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Last Name</label><input class="ll-input" id="acc-lastname" type="text" /></div>
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Email</label><input class="ll-input" id="acc-email" type="email" /></div>
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">New Password</label><input class="ll-input" id="acc-newpwd" type="password" autocomplete="new-password" /></div>
+          <div class="ll-field"><label class="ll-label" style="color:#e5e7eb;">Current Password</label><input class="ll-input" id="acc-currpwd" type="password" autocomplete="current-password" /></div>
+        </div>
+        <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #374151; background:#111827;">
+          <button class="ll-btn" id="account-settings-cancel" style="background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>
+          <button class="ll-btn-primary" id="account-settings-save" style="background:#10b981; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Save</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js" defer></script>
 </body>
@@ -1071,33 +1093,94 @@
   
 </div>
 
-<!-- Edit Land Info Modal -->
-<div id="edit-land-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 1000;">
-  <div class="ll-modal-card" style="background:#fff; padding:0; border-radius:12px; width: min(740px, 96vw); max-height: 88vh; overflow:auto; box-shadow:0 12px 32px rgba(0,0,0,.22); border:1px solid #ececec;">
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #f1f5f9; background:#ffffff;">
-      <h3 class="ll-modal-title" style="margin:0; font-size:1.06em; color:#111;">Edit Land Information</h3>
-      <button id="edit-land-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:1.2em;">×</button>
+<!-- Enhanced Edit Land Info Modal -->
+<div id="edit-land-modal" class="ll-modal-overlay">
+  <div class="ll-modal-card">
+    <div>
+      <h3 class="ll-modal-title">Edit Land Information</h3>
+      <button id="edit-land-close" class="close-btn" aria-label="Close modal">&times;</button>
     </div>
+    
     <input id="edit-land-id" type="hidden" />
-    <div class="ll-form-grid" style="padding:16px; display:grid; gap:12px 14px;">
-      <div class="ll-field"><label class="ll-label">LHID</label><input class="ll-input" id="edit-lhid" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Title Number</label><input class="ll-input" id="edit-title-number" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">LO Name</label><input class="ll-input" id="edit-lo-name" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">MOA</label><input class="ll-input" id="edit-moa" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Barangay Name</label><input class="ll-input" id="edit-barangay-name" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Total Area</label><input class="ll-input" id="edit-total-area" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Survey Number</label><input class="ll-input" id="edit-survey-number" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Lot Number</label><input class="ll-input" id="edit-lot-number" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Current Status</label><input class="ll-input" id="edit-current-status" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Status Description</label><input class="ll-input" id="edit-current-status-desc" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Problem Category</label><input class="ll-input" id="edit-problem-category" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Sub Category</label><input class="ll-input" id="edit-sub-category" type="text" /></div>
-      <div class="ll-field"><label class="ll-label">Land Status</label><select class="ll-input" id="edit-land-status"><option value="workable">Workable</option><option value="problematic">Problematic</option></select></div>
-      <div class="ll-field" style="grid-column: 1 / -1;"><label class="ll-label">Remarks</label><textarea class="ll-input" id="edit-remarks" rows="3" style="resize:vertical;"></textarea></div>
+    
+    <div class="ll-form-grid">
+      <div class="ll-field">
+        <label class="ll-label">LHID</label>
+        <input class="ll-input" id="edit-lhid" type="text" placeholder="Enter LHID" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Title Number</label>
+        <input class="ll-input" id="edit-title-number" type="text" placeholder="Enter title number" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">LO Name</label>
+        <input class="ll-input" id="edit-lo-name" type="text" placeholder="Enter landowner name" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">MOA</label>
+        <input class="ll-input" id="edit-moa" type="text" placeholder="Enter MOA" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Barangay Name</label>
+        <input class="ll-input" id="edit-barangay-name" type="text" placeholder="Enter barangay name" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Total Area</label>
+        <input class="ll-input" id="edit-total-area" type="text" placeholder="Enter total area" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Survey Number</label>
+        <input class="ll-input" id="edit-survey-number" type="text" placeholder="Enter survey number" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Lot Number</label>
+        <input class="ll-input" id="edit-lot-number" type="text" placeholder="Enter lot number" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Current Status</label>
+        <input class="ll-input" id="edit-current-status" type="text" placeholder="Enter current status" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Status Description</label>
+        <input class="ll-input" id="edit-current-status-desc" type="text" placeholder="Enter status description" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Problem Category</label>
+        <input class="ll-input" id="edit-problem-category" type="text" placeholder="Enter problem category" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Sub Category</label>
+        <input class="ll-input" id="edit-sub-category" type="text" placeholder="Enter sub category" />
+      </div>
+      
+      <div class="ll-field">
+        <label class="ll-label">Land Status</label>
+        <select class="ll-input" id="edit-land-status">
+          <option value="workable">Workable</option>
+          <option value="problematic">Problematic</option>
+        </select>
+      </div>
+      
+      <div class="ll-field" style="grid-column: 1 / -1;">
+        <label class="ll-label">Remarks</label>
+        <textarea class="ll-input" id="edit-remarks" rows="3" placeholder="Enter remarks" style="resize:vertical;"></textarea>
+      </div>
     </div>
-    <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #f1f5f9; background:#fafafa;">
-      <button class="ll-btn" id="edit-land-cancel" style="background:#fff; color:#111; border:1px solid #ddd; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>
-      <button class="ll-btn-primary" id="edit-land-save" style="background:#0ea5e9; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Save</button>
+    
+    <div class="ll-actions">
+      <button class="ll-btn" id="edit-land-cancel">Cancel</button>
+      <button class="ll-btn-primary" id="edit-land-save">Save Changes</button>
     </div>
   </div>
 </div>

@@ -96,7 +96,7 @@
             try {
                 const { data: user, error } = await supabase
                     .from('users')
-                    .select('username, user_email, user_password, role, active')
+                    .select('user_id, username, user_email, user_password, user_firstname, user_lastname, role, active')
                     .or(`username.eq.${identifier},user_email.eq.${identifier}`)
                     .single();
 
@@ -109,6 +109,17 @@
                 if (String(user.user_password) !== String(password)) {
                     throw new Error('Invalid credentials.');
                 }
+
+                // Persist minimal current user for profile modal
+                try { localStorage.setItem('ll_current_user', JSON.stringify({
+                  user_id: user.user_id,
+                  username: user.username,
+                  user_email: user.user_email,
+                  user_firstname: user.user_firstname,
+                  user_lastname: user.user_lastname,
+                  role: user.role,
+                  active: user.active
+                })); } catch {}
 
                 const role = String(user.role || '').toLowerCase();
                 if (role === 'office') {

@@ -17,6 +17,97 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ===== Account Settings Modal Logic =====
+function getCurrentUserFromStorage() {
+  try {
+    const raw = localStorage.getItem('ll_current_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function openAccountSettingsModal() {
+  const modal = document.getElementById('account-settings-modal');
+  if (!modal) return;
+  const user = getCurrentUserFromStorage();
+  if (user) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+    set('acc-username', user.username);
+    set('acc-firstname', user.user_firstname);
+    set('acc-lastname', user.user_lastname);
+    set('acc-email', user.user_email);
+    const np = document.getElementById('acc-newpwd'); if (np) np.value = '';
+    const cp = document.getElementById('acc-currpwd'); if (cp) cp.value = '';
+  }
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAccountSettingsModal() {
+  const modal = document.getElementById('account-settings-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function saveAccountSettings() {
+  const user = getCurrentUserFromStorage();
+  if (!user) { alert('No current user in session. Please sign in again.'); return; }
+
+  const username = (document.getElementById('acc-username')?.value || '').trim();
+  const user_firstname = (document.getElementById('acc-firstname')?.value || '').trim();
+  const user_lastname = (document.getElementById('acc-lastname')?.value || '').trim();
+  const user_email = (document.getElementById('acc-email')?.value || '').trim();
+  const newPassword = (document.getElementById('acc-newpwd')?.value || '').trim();
+  const currPassword = (document.getElementById('acc-currpwd')?.value || '').trim();
+
+  // If changing password, require current password to match existing (client-side check since using plaintext field)
+  if (newPassword) {
+    // Fetch current row to verify current password
+    const { data: existing, error: fetchErr } = await supabase
+      .from('users')
+      .select('user_password')
+      .eq('user_id', user.user_id)
+      .single();
+    if (fetchErr) { alert('Unable to verify current password.'); return; }
+    if (String(existing?.user_password ?? '') !== String(currPassword)) {
+      alert('Current password is incorrect.');
+      return;
+    }
+  }
+
+  const update = { username, user_firstname, user_lastname, user_email };
+  if (!username) delete update.username;
+  if (!user_firstname) delete update.user_firstname;
+  if (!user_lastname) delete update.user_lastname;
+  if (!user_email) delete update.user_email;
+  if (newPassword) update.user_password = newPassword;
+
+  const { data: updated, error } = await supabase
+    .from('users')
+    .update(update)
+    .eq('user_id', user.user_id)
+    .select('user_id, username, user_email, user_firstname, user_lastname, role, active')
+    .maybeSingle();
+  if (error) { alert('Failed to update account: ' + error.message); return; }
+  if (updated) {
+    try { localStorage.setItem('ll_current_user', JSON.stringify(updated)); } catch {}
+  }
+  closeAccountSettingsModal();
+  alert('Account updated successfully.');
+}
+
+// Wire modal buttons and optional open triggers
+document.addEventListener('DOMContentLoaded', function() {
+  const openBtn = document.getElementById('open-account-settings');
+  if (openBtn) openBtn.onclick = openAccountSettingsModal;
+  const closeBtn = document.getElementById('account-settings-close');
+  if (closeBtn) closeBtn.onclick = closeAccountSettingsModal;
+  const cancelBtn = document.getElementById('account-settings-cancel');
+  if (cancelBtn) cancelBtn.onclick = closeAccountSettingsModal;
+  const saveBtn = document.getElementById('account-settings-save');
+  if (saveBtn) saveBtn.onclick = saveAccountSettings;
+});
+
 // Fetch users from Supabase and populate the user management table
 document.addEventListener('DOMContentLoaded', () => {
   fetchAndRenderUsers();
@@ -647,6 +738,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const firstname = document.getElementById('add-tech-firstname').value.trim();
       const lastname = document.getElementById('add-tech-lastname').value.trim();
       const email = document.getElementById('add-tech-email').value.trim();
+      // Optional role selector support: default to technician
+      const roleSelect = document.getElementById('add-tech-role');
+      const selectedRole = (roleSelect && roleSelect.value) ? roleSelect.value : 'technician';
       if (!firstname || !lastname || !email) {
         alert('Please fill in all fields.');
         return;
@@ -661,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
           user_firstname: firstname,
           user_lastname: lastname,
           user_password,
-          role: 'technician'
+          role: selectedRole
         }
       ]);
       if (error) {
@@ -707,23 +801,13 @@ async function fetchAndRenderLandAreas() {
     const statusText = landStatus === 'problematic' ? 'Problematic' : 'Workable';
     
     const li = document.createElement('li');
-    li.style.cssText = `
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-      background: white;
-      border: 1px solid var(--neutral-200);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      list-style: none;
-    `;
+    li.className = 'land-holding-card';
     
     li.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="flex: 1;">
-          <div style="font-weight: 600; color: var(--neutral-800); margin-bottom: 0.25rem;">${ownerName}</div>
-          <div style="font-size: 0.75rem; color: var(--neutral-500);">${area.barangay_name || 'No barangay specified'}</div>
+      <div>
+        <div>
+          <div>${ownerName}</div>
+          <div>${area.barangay_name || 'No barangay specified'}</div>
         </div>
         <div class="${landStatus === 'problematic' ? 'status-problematic' : 'status-workable'}">
           ${statusIcon} ${statusText}
@@ -731,18 +815,7 @@ async function fetchAndRenderLandAreas() {
       </div>
     `;
     
-    // Add hover effect
-    li.addEventListener('mouseenter', () => {
-      li.style.transform = 'translateY(-1px)';
-      li.style.boxShadow = 'var(--shadow-md)';
-      li.style.borderColor = 'var(--primary)';
-    });
-    
-    li.addEventListener('mouseleave', () => {
-      li.style.transform = 'translateY(0)';
-      li.style.boxShadow = 'var(--shadow-sm)';
-      li.style.borderColor = 'var(--neutral-200)';
-    });
+    // Hover effects are now handled by CSS
     li.onclick = function() {
       if (window.zoomToLandArea) {
         window.zoomToLandArea(area);
@@ -792,13 +865,13 @@ async function fetchAndRenderLandAreas() {
       if (key === 'workable') {
         listWorkable.style.display = '';
         listProblem.style.display = 'none';
-        tabWorkable.classList.add('ll-btn-primary');
-        tabProblem.classList.remove('ll-btn-primary');
+        tabWorkable.classList.add('active');
+        tabProblem.classList.remove('active');
       } else {
         listWorkable.style.display = 'none';
         listProblem.style.display = '';
-        tabProblem.classList.add('ll-btn-primary');
-        tabWorkable.classList.remove('ll-btn-primary');
+        tabProblem.classList.add('active');
+        tabWorkable.classList.remove('active');
       }
     };
     tabWorkable.onclick = () => activate('workable');
