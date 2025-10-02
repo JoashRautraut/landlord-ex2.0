@@ -3237,11 +3237,27 @@ body.blurred > *:not(#logout-confirmation) {
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.bearings-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.bearings-modal-header {
+  flex-shrink: 0;
+}
+
+.bearings-modal-footer {
+  flex-shrink: 0;
 }
 
 /* Progress Indicator Styles */
@@ -3513,31 +3529,190 @@ body.blurred > *:not(#logout-confirmation) {
   }
 }
 
-/* Responsive Design */
+/* Responsive Design for Multi-Step Modal */
 @media (max-width: 768px) {
-  .coordinates-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .point-input-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .summary-grid {
-    grid-template-columns: 1fr;
+  .bearings-modal-content {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 10px !important;
+    max-height: 95vh !important;
   }
   
   .progress-indicator {
-    padding: 16px 20px;
+    padding: 12px 16px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .progress-step {
+    margin-bottom: 8px !important;
+  }
+  
+  .step-number {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.75rem !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .step-label {
+    font-size: 0.65rem !important;
+    text-align: center !important;
   }
   
   .progress-line {
-    margin: 0 12px;
+    margin: 0 8px !important;
+    top: -12px !important;
   }
   
   .step-content {
-    padding: 20px;
+    padding: 16px !important;
+  }
+  
+  .step-header h4 {
+    font-size: 1.25rem !important;
+  }
+  
+  .coordinates-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .point-input-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+  
+  .point-label {
+    padding: 8px 0 !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+    background: #f8fafc !important;
+    border-radius: 6px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .points-count-section {
+    padding: 16px !important;
+  }
+  
+  .points-input-container {
+    margin-bottom: 20px !important;
+  }
+  
+  .bearings-modal-footer {
+    padding: 16px !important;
+  }
+  
+  .footer-actions {
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  
+  .footer-actions button {
+    width: 100% !important;
+    padding: 14px 20px !important;
+    font-size: 1rem !important;
+    justify-content: center !important;
+    min-height: 48px !important;
+  }
+  
+  .footer-actions button svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  
+  .form-group input,
+  .coordinate-input input,
+  .point-input-row input {
+    padding: 14px 16px !important;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    min-height: 48px !important;
+  }
+  
+  .form-group label,
+  .coordinate-input label {
+    font-size: 0.9rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .input-help {
+    font-size: 0.8rem !important;
+  }
+  
+  .points-input-header h5 {
+    font-size: 1rem !important;
+  }
+  
+  .summary-header h5 {
+    font-size: 1rem !important;
+  }
+  
+  .summary-value {
+    font-size: 1.1rem !important;
+  }
+  
+  .dynamic-points-inputs {
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .bearings-modal-content {
+    max-width: 98vw !important;
+    width: 98vw !important;
+    margin: 5px !important;
+    border-radius: 12px !important;
+  }
+  
+  .progress-indicator {
+    padding: 10px 12px !important;
+  }
+  
+  .step-number {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.7rem !important;
+  }
+  
+  .step-label {
+    font-size: 0.6rem !important;
+  }
+  
+  .progress-line {
+    margin: 0 6px !important;
+  }
+  
+  .step-content {
+    padding: 12px !important;
+  }
+  
+  .step-header h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  .step-header p {
+    font-size: 0.85rem !important;
+  }
+  
+  .footer-actions button {
+    padding: 16px 20px !important;
+    font-size: 0.95rem !important;
+    min-height: 52px !important;
+  }
+  
+  .points-count-section {
+    padding: 12px !important;
+  }
+  
+  .point-input-row {
+    padding: 10px !important;
   }
 }
 
