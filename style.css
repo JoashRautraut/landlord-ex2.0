@@ -493,12 +493,12 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     z-index: 3000;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-items: center;
     animation: modalFadeIn 0.3s ease-out;
 }
 
@@ -507,7 +507,7 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 }
 
 #logout-confirmation .logout-content {
-    background: linear-gradient(135deg, #23272f 0%, #1a1f2e 100%);
+    background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
     border: 1px solid #374151;
     border-radius: 20px;
     box-shadow: 
@@ -516,10 +516,12 @@ nav:hover ~ .container, nav:focus-within ~ .container {
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     padding: 0;
     min-width: 380px;
-    max-width: 95vw;
-    width: 100%;
-    max-width: 420px;
-    position: relative;
+    width: 420px;
+    max-width: 90vw;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     overflow: hidden;
     animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     color: #e4e6eb;
@@ -814,8 +816,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     border: 2px solid #374151;
     border-radius: 12px;
     font-size: 1em;
-    background: rgba(31, 41, 55, 0.8);
-    color: #e4e6eb;
+    background: #ffffff;
+    color: #111827;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -828,7 +830,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #account-settings-modal .ll-input:focus {
     border-color: var(--accent);
-    background: rgba(31, 41, 55, 0.95);
+    background: #ffffff;
+    color: #111827;
     outline: none;
     box-shadow: 
         0 0 0 3px rgba(76, 175, 80, 0.2),
@@ -838,7 +841,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #account-settings-modal .ll-input:hover {
     border-color: #4b5563;
-    background: rgba(31, 41, 55, 0.9);
+    background: #ffffff;
+    color: #111827;
 }
 
 /* Account Settings Footer */
@@ -1059,8 +1063,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     border: 2px solid #374151;
     border-radius: 12px;
     font-size: 1em;
-    background: rgba(31, 41, 55, 0.8);
-    color: #e4e6eb;
+    background: #ffffff;
+    color: #111827;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1074,7 +1078,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #add-technician-modal .modal-input:focus {
     border-color: var(--accent);
-    background: rgba(31, 41, 55, 0.95);
+    background: #ffffff;
+    color: #111827;
     outline: none;
     box-shadow: 
         0 0 0 3px rgba(76, 175, 80, 0.2),
@@ -1084,7 +1089,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #add-technician-modal .modal-input:hover {
     border-color: #4b5563;
-    background: rgba(31, 41, 55, 0.9);
+    background: #ffffff;
+    color: #111827;
 }
 
 #add-technician-modal .modal-btn {
@@ -1310,8 +1316,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
     border: 2px solid #374151;
     border-radius: 12px;
     font-size: 1em;
-    background: rgba(31, 41, 55, 0.8);
-    color: #e4e6eb;
+    background: #ffffff;
+    color: #111827;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1324,7 +1330,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #edit-land-modal .ll-input:focus {
     border-color: var(--accent);
-    background: rgba(31, 41, 55, 0.95);
+    background: #ffffff;
+    color: #111827;
     outline: none;
     box-shadow: 
         0 0 0 3px rgba(76, 175, 80, 0.2),
@@ -1334,7 +1341,8 @@ nav:hover ~ .container, nav:focus-within ~ .container {
 
 #edit-land-modal .ll-input:hover {
     border-color: #4b5563;
-    background: rgba(31, 41, 55, 0.9);
+    background: #ffffff;
+    color: #111827;
 }
 
 #edit-land-modal .ll-actions {
@@ -2024,8 +2032,8 @@ body.login-page {
     font-weight: 600;
 }
 .form-group input {
-    background: #18191a;
-    color: #fff;
+    background: #ffffff;
+    color: #111827;
     border: 1.5px solid var(--accent);
     border-radius: 6px;
     padding: 0.8em;
@@ -2633,8 +2641,8 @@ body.login-page {
     border: 2px solid #374151;
     border-radius: 12px;
     font-size: 1em;
-    background: rgba(31, 41, 55, 0.8);
-    color: #e4e6eb;
+    background: #ffffff;
+    color: #111827;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -2647,7 +2655,8 @@ body.login-page {
 
 #edit-user-modal input:focus, #edit-user-modal select:focus {
     border-color: var(--accent);
-    background: rgba(31, 41, 55, 0.95);
+    background: #ffffff;
+    color: #111827;
     outline: none;
     box-shadow: 
         0 0 0 3px rgba(76, 175, 80, 0.2),
@@ -2657,7 +2666,8 @@ body.login-page {
 
 #edit-user-modal input:hover, #edit-user-modal select:hover {
     border-color: #4b5563;
-    background: rgba(31, 41, 55, 0.9);
+    background: #ffffff;
+    color: #111827;
 }
 
 /* Modal Footer */
@@ -2958,6 +2968,8 @@ body.blurred > *:not(#logout-confirmation) {
 #add-technician-modal .modal-input:focus {
   border: 1.5px solid var(--accent);
   outline: none;
+  background: #ffffff;
+  color: #111827;
 }
 #add-technician-modal .modal-btn {
   padding: 8px 20px;
@@ -3753,9 +3765,9 @@ body.blurred > *:not(#logout-confirmation) {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Blur the background content when logout modal is open */
@@ -3764,8 +3776,8 @@ body.logout-modal-open {
 }
 
 body.logout-modal-open > *:not(#logout-confirmation) {
-  filter: blur(3px);
-  transition: filter 0.3s ease;
+  filter: none;
+  transition: none;
 }
 
 body.logout-modal-open #logout-confirmation {
@@ -3773,7 +3785,10 @@ body.logout-modal-open #logout-confirmation {
 }
 
 .logout-modal-content {
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: linear-gradient(135deg, #ff7a18 0%, #ff3f00 100%);
   color: #ffffff;
   padding: 24px;
@@ -4480,8 +4495,8 @@ body.logout-modal-open #logout-confirmation {
   border: 2px solid #374151;
   border-radius: 12px;
   font-size: 1em;
-  background: rgba(31, 41, 55, 0.8);
-  color: #e4e6eb;
+  background: #ffffff;
+  color: #111827;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -4494,7 +4509,8 @@ body.logout-modal-open #logout-confirmation {
 
 .search-input:focus {
   border-color: var(--accent);
-  background: rgba(31, 41, 55, 0.95);
+  background: #ffffff;
+  color: #111827;
   outline: none;
   box-shadow: 
     0 0 0 3px rgba(76, 175, 80, 0.2),
@@ -4520,8 +4536,8 @@ body.logout-modal-open #logout-confirmation {
   border: 2px solid #374151;
   border-radius: 12px;
   font-size: 0.95em;
-  background: rgba(31, 41, 55, 0.8);
-  color: #e4e6eb;
+  background: #ffffff;
+  color: #111827;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   cursor: pointer;
@@ -4530,7 +4546,8 @@ body.logout-modal-open #logout-confirmation {
 
 .filter-select:focus {
   border-color: var(--accent);
-  background: rgba(31, 41, 55, 0.95);
+  background: #ffffff;
+  color: #111827;
   outline: none;
   box-shadow: 
     0 0 0 3px rgba(76, 175, 80, 0.2),

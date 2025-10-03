@@ -34,6 +34,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// ============ Auth Guard ============
+function isEditableElement(el) {
+  if (!el) return false;
+  const tag = (el.tagName || '').toLowerCase();
+  const editable = el.isContentEditable === true;
+  return editable || tag === 'input' || tag === 'textarea' || tag === 'select';
+}
+
+function isLoggedIn() {
+  try {
+    const raw = localStorage.getItem('ll_current_user');
+    if (!raw) return false;
+    const user = JSON.parse(raw);
+    if (!user) return false;
+    // require a live session token (tab/window scoped)
+    const sess = sessionStorage.getItem('ll_session');
+    if (!sess) return false;
+    // must have role and not explicitly inactive
+    return typeof user.role === 'string' && user.active !== false;
+  } catch { return false; }
+}
+
+function hasRole(requiredRoles) {
+  try {
+    const raw = localStorage.getItem('ll_current_user');
+    if (!raw) return false;
+    const user = JSON.parse(raw);
+    const role = String(user?.role || '').toLowerCase();
+    return Array.isArray(requiredRoles) ? requiredRoles.includes(role) : true;
+  } catch { return false; }
+}
+
+function hardRedirectToLogin() {
+  // Replace the current history entry so Back won’t re-enter the protected page
+  try { history.replaceState(null, '', 'index.html'); } catch {}
+  window.location.replace('index.html');
+}
+
+function enforceAuthGuard() {
+  const path = (window.location.pathname || '').toLowerCase();
+  const isHome = path.endsWith('/home.html') || path.endsWith('home.html');
+  const isAdmin = path.endsWith('/admin.html') || path.endsWith('admin.html');
+
+  if (isHome || isAdmin) {
+    // Must be logged in
+    if (!isLoggedIn()) { hardRedirectToLogin(); return; }
+    // Role-based checks
+    if (isHome && !hasRole(['office'])) { hardRedirectToLogin(); return; }
+    if (isAdmin && !hasRole(['admin','office'])) { hardRedirectToLogin(); return; }
+
+    // Online validation against Supabase to prevent localStorage spoofing
+    (async () => {
+      try {
+        const raw = localStorage.getItem('ll_current_user');
+        const sess = sessionStorage.getItem('ll_session');
+        if (!raw || !sess) return hardRedirectToLogin();
+        const user = JSON.parse(raw);
+        const userId = user?.user_id;
+        if (!userId) return hardRedirectToLogin();
+        // allow dev backdoor admin (user_id = -1) without DB validation
+        const roleLower = String(user?.role || '').toLowerCase();
+        if (userId === -1 && roleLower === 'admin') return; 
+        const { data, error } = await supabase
+          .from('users')
+          .select('user_id, role, active')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (error || !data || data.active === false) return window.llLogout();
+        const role = String(data.role || '').toLowerCase();
+        if (isHome && role !== 'office') return window.llLogout();
+        if (isAdmin && !(role === 'office' || role === 'admin')) return window.llLogout();
+      } catch { return window.llLogout(); }
+    })();
+
+    // Mitigate back/alt+arrow navigation re-entry
+    try { history.pushState({ guard: true }, document.title, window.location.href); } catch {}
+    window.addEventListener('popstate', function() {
+      if (!isLoggedIn()) { hardRedirectToLogin(); return; }
+      // If user tries to navigate back into login, push forward to current protected page
+      try { history.go(1); } catch {}
+    });
+    window.addEventListener('keydown', function(e) {
+      // Prevent Backspace navigation when not editing an input
+      if (e.key === 'Backspace' && !isEditableElement(e.target)) { e.preventDefault(); }
+      // Prevent Alt+Left/Right nav
+      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); }
+    }, { capture: true });
+  }
+}
+
+// Run guard ASAP
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', enforceAuthGuard, { once: true });
+} else {
+  enforceAuthGuard();
+}
+
+// Global logout helper for all pages
+window.llLogout = function() {
+  try { localStorage.removeItem('ll_current_user'); } catch {}
+  try { sessionStorage.removeItem('ll_session'); } catch {}
+  hardRedirectToLogin();
+};
+
 
 // ===== Account Settings Modal Logic =====
 function getCurrentUserFromStorage() {
@@ -48,12 +152,19 @@ function openAccountSettingsModal() {
   if (!modal) return;
   const user = getCurrentUserFromStorage();
   if (user) {
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
-    set('acc-username', user.username);
-    set('acc-firstname', user.user_firstname);
-    set('acc-lastname', user.user_lastname);
-    set('acc-email', user.user_email);
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; };
+    setText('acc-username-value', user.username || '');
+    setText('acc-firstname-value', user.user_firstname || '');
+    setText('acc-lastname-value', user.user_lastname || '');
+    setText('acc-email-value', user.user_email || '');
+    // header meta like Add Land modal
+    const fullName = `${(user.user_firstname||'').trim()} ${(user.user_lastname||'').trim()}`.trim() || (user.username || 'Account Info');
+    setText('acc-fullname-value', fullName);
+    setText('acc-email-sub', user.user_email || '');
+    const initials = ((user.user_firstname||'').charAt(0) + (user.user_lastname||'').charAt(0)).toUpperCase() || (user.username||'A').slice(0,2).toUpperCase();
+    const avatar = document.getElementById('acc-avatar-initials'); if (avatar) avatar.textContent = initials;
     const np = document.getElementById('acc-newpwd'); if (np) np.value = '';
+    const np2 = document.getElementById('acc-newpwd2'); if (np2) np2.value = '';
     const cp = document.getElementById('acc-currpwd'); if (cp) cp.value = '';
   }
   modal.style.display = 'flex';
@@ -76,10 +187,12 @@ async function saveAccountSettings() {
   const user_lastname = (document.getElementById('acc-lastname')?.value || '').trim();
   const user_email = (document.getElementById('acc-email')?.value || '').trim();
   const newPassword = (document.getElementById('acc-newpwd')?.value || '').trim();
+  const newPassword2 = (document.getElementById('acc-newpwd2')?.value || '').trim();
   const currPassword = (document.getElementById('acc-currpwd')?.value || '').trim();
 
   // If changing password, require current password to match existing (client-side check since using plaintext field)
-  if (newPassword) {
+  if (newPassword || newPassword2) {
+    if (!newPassword || newPassword !== newPassword2) { alert('New passwords do not match.'); return; }
     // Fetch current row to verify current password
     const { data: existing, error: fetchErr } = await supabase
       .from('users')
@@ -109,6 +222,13 @@ async function saveAccountSettings() {
   if (error) { alert('Failed to update account: ' + error.message); return; }
   if (updated) {
     try { localStorage.setItem('ll_current_user', JSON.stringify(updated)); } catch {}
+    // reflect text values immediately
+    try {
+      document.getElementById('acc-username-value').textContent = updated.username || '';
+      document.getElementById('acc-firstname-value').textContent = updated.user_firstname || '';
+      document.getElementById('acc-lastname-value').textContent = updated.user_lastname || '';
+      document.getElementById('acc-email-value').textContent = updated.user_email || '';
+    } catch {}
   }
   closeAccountSettingsModal();
   alert('Account updated successfully.');
@@ -124,6 +244,37 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cancelBtn) cancelBtn.onclick = closeAccountSettingsModal;
   const saveBtn = document.getElementById('account-settings-save');
   if (saveBtn) saveBtn.onclick = saveAccountSettings;
+  // kebab shows password section
+  const kebab = document.getElementById('account-info-kebab');
+  const pwSection = document.getElementById('password-change-section');
+  const detailsSection = document.getElementById('account-details-section');
+  const pwSave = document.getElementById('pw-save');
+  const pwCancel = document.getElementById('pw-cancel');
+  const pwErr = document.getElementById('pw-error');
+  const pwSuccess = document.getElementById('pw-success');
+  const new1 = document.getElementById('acc-newpwd');
+  const new2 = document.getElementById('acc-newpwd2');
+  const cur = document.getElementById('acc-currpwd');
+  const setSaveEnabled = (enabled) => {
+    if (!pwSave) return;
+    pwSave.disabled = !enabled;
+    pwSave.style.opacity = enabled ? '1' : '.6';
+    pwSave.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  };
+  const validatePw = () => {
+    if (!new1 || !new2 || !cur) return;
+    const ok = new1.value.length >= 8 && new1.value === new2.value && cur.value.length > 0;
+    if (pwErr) pwErr.style.display = new1.value && new2.value && new1.value !== new2.value ? 'block' : 'none';
+    if (pwSuccess) pwSuccess.style.display = 'none';
+    setSaveEnabled(ok);
+  };
+  [new1,new2,cur].forEach(el => { if (el) el.addEventListener('input', validatePw); });
+  if (pwCancel) pwCancel.onclick = function(){ if (new1) new1.value=''; if (new2) new2.value=''; if (cur) cur.value=''; validatePw(); if (pwSection && detailsSection) { pwSection.style.display='none'; detailsSection.style.display='grid'; } };
+  if (pwSave) pwSave.onclick = async function(){ await saveAccountSettings(); if (pwSuccess) pwSuccess.style.display='block'; if (pwSection && detailsSection) { pwSection.style.display='none'; detailsSection.style.display='grid'; } };
+  const changeToggle = document.getElementById('account-change-password-toggle');
+  if (changeToggle && pwSection && detailsSection) {
+    changeToggle.onclick = function(){ pwSection.style.display='block'; detailsSection.style.display='none'; };
+  }
 });
 
 

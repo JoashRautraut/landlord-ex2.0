@@ -86,6 +86,18 @@
 
             // Admin backdoor: access admin panel with admin/admin
             if (identifier.toLowerCase() === 'admin' && password === 'admin') {
+                try {
+                  localStorage.setItem('ll_current_user', JSON.stringify({
+                    user_id: -1,
+                    username: 'admin',
+                    user_email: 'admin@local',
+                    user_firstname: 'Admin',
+                    user_lastname: 'User',
+                    role: 'admin',
+                    active: true
+                  }));
+                } catch {}
+                try { sessionStorage.setItem('ll_session', JSON.stringify({ user_id: -1, ts: Date.now() })); } catch {}
                 window.location.href = 'admin.html#profile';
                 return;
             }
@@ -122,12 +134,20 @@
                 })); } catch {}
 
                 const role = String(user.role || '').toLowerCase();
+                // establish in-memory session (tab/window scoped)
+                try { sessionStorage.setItem('ll_session', JSON.stringify({ user_id: user.user_id, ts: Date.now() })); } catch {}
                 if (role === 'office') {
                     showDarSplash('home.html#map');
                     return;
                 }
+                if (role === 'admin') {
+                    window.location.href = 'admin.html#profile';
+                    return;
+                }
                 if (role === 'technician') {
-                    window.location.href = 'https://jam-piodos.github.io/landlord';
+                    // For technicians, keep them off this portal
+                    errorEl.textContent = 'This portal is for office accounts only.';
+                    errorEl.hidden = false;
                     return;
                 }
 
@@ -171,7 +191,7 @@
         --header-start: #ff7a18; /* orange */
         --header-end: #111111;  /* black */
         --header-text: #ffffff;
-        --input-bg: #12161b;
+        --input-bg: #ffffff;
         --input-border: #2a3138;
         --input-placeholder: #98a2ac;
       }
@@ -223,7 +243,7 @@
         border-radius: 10px;
         border: 1px solid var(--input-border);
         background: var(--input-bg);
-        color: var(--text);
+        color: #111827;
         font-size: 1.05em;
         margin-bottom: 14px;
         outline: none;
@@ -232,7 +252,7 @@
       .form-group input:focus {
         border: 1px solid var(--accent-start);
         box-shadow: 0 0 0 3px rgba(255,122,24,0.35);
-        background: #0f141a;
+        background: #ffffff;
       }
       .form-group input::placeholder { color: var(--input-placeholder); }
       /* Make the toggle button align perfectly inside the input */

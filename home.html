@@ -2,6 +2,22 @@
 <html lang="en">
 
 <head>
+    <script>
+      (function(){
+        function toLogin(){ try { history.replaceState(null,'','index.html'); } catch(e){} window.location.replace('index.html'); }
+        try {
+          var raw = localStorage.getItem('ll_current_user');
+          if (!raw) return toLogin();
+          // require a live tab session as well
+          var sess = sessionStorage.getItem('ll_session');
+          if (!sess) return toLogin();
+          var user = JSON.parse(raw);
+          var role = String((user && user.role) || '').toLowerCase();
+          if (user && user.active !== false && role === 'office') return;
+          return toLogin();
+        } catch(e){ return toLogin(); }
+      })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LandLord</title>
@@ -533,7 +549,7 @@
           background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); z-index: 1501;
           overflow: hidden;
         ">
-          <button id="account-settings-item" style="width:100%; text-align:left; background:none; border:none; padding:12px 14px; font-weight:600; cursor:pointer;">Account Settings</button>
+          <button id="account-settings-item" style="width:100%; text-align:left; background:none; border:none; padding:12px 14px; font-weight:600; cursor:pointer;">Account Info</button>
           <button id="logout-item" style="width:100%; text-align:left; background:none; border:none; padding:12px 14px; font-weight:700; color:#b91c1c; cursor:pointer;">Log out</button>
         </div>
 
@@ -631,7 +647,13 @@
                   menu.style.display = 'none';
                 }
               });
-              // Account Settings -> handled in app.js now
+              // Account Settings from settings menu
+              const accItem = document.getElementById('account-settings-item');
+              if (accItem) accItem.onclick = function(){
+                menu.style.display = 'none';
+                if (window.openAccountSettingsModal) window.openAccountSettingsModal();
+                else { const m = document.getElementById('account-settings-modal'); if (m) m.style.display = 'flex'; }
+              };
               // Logout -> open confirm modal
               const logoutBtn = document.getElementById('logout-item');
               if (logoutBtn) logoutBtn.onclick = function(){
@@ -1046,41 +1068,49 @@
     </div>
 
     <!-- Account Settings Modal -->
-    <div id="account-settings-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: #0006; align-items: center; justify-content: center; z-index: 3001;">
-      <div class="ll-modal-card" style="background:#1f2937; color:#e5e7eb; padding:0; border-radius:12px; width: min(560px, 94vw); box-shadow:0 12px 32px rgba(0,0,0,.32); border:1px solid #374151; overflow:hidden;">
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid #374151; background:#111827;">
-          <h3 style="margin:0; font-size:1.06em; color:#fff;">Edit Account</h3>
-          <button id="account-settings-close" aria-label="Close" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.2em;">×</button>
-        </div>
-        <div style="padding:16px; display:grid; gap:12px 14px;">
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">Username</label>
-            <input class="ll-input" id="acc-username" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
+    <div id="account-settings-modal" class="ll-modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 3001;">
+      <div class="ll-modal-card" style="background:linear-gradient(180deg,#0f172a 0%, #111827 100%); color:#e5e7eb; padding:0; border-radius:16px; width: min(720px, 96vw); box-shadow:0 18px 48px rgba(0,0,0,.38); border:1px solid rgba(148,163,184,.18); overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid rgba(148,163,184,.18); background:linear-gradient(180deg,#0b1220,#0f172a);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div id="acc-avatar-initials" style="width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,#22c55e,#16a34a); display:flex; align-items:center; justify-content:center; font-weight:800; color:#0b1220;">AI</div>
+            <div>
+              <div id="acc-fullname-value" style="margin:0; font-size:1.05em; color:#fff; font-weight:800; letter-spacing:.2px;">Account Info</div>
+              <div id="acc-email-sub" style="font-size:.85em; color:#94a3b8;">View your profile details and manage your password</div>
+            </div>
           </div>
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">First Name</label>
-            <input class="ll-input" id="acc-firstname" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
-          </div>
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">Last Name</label>
-            <input class="ll-input" id="acc-lastname" type="text" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
-          </div>
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">Email</label>
-            <input class="ll-input" id="acc-email" type="email" style="background:#374151; border:1px solid #4b5563; color:#fff;" />
-          </div>
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">New Password</label>
-            <input class="ll-input" id="acc-newpwd" type="password" autocomplete="new-password" style="background:#374151; border:1px solid #4b5563; color:#fff;" placeholder="Leave blank to keep current password" />
-          </div>
-          <div class="ll-field">
-            <label class="ll-label" style="color:#e5e7eb;">Current Password</label>
-            <input class="ll-input" id="acc-currpwd" type="password" autocomplete="current-password" style="background:#374151; border:1px solid #4b5563; color:#fff;" placeholder="Required only if changing password" />
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button id="account-change-password-toggle" aria-label="Change password" title="Change password" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#0b1220;font-size:.9em;cursor:pointer; padding:8px 12px; border-radius:10px; font-weight:800;">Change password</button>
+            <button id="account-settings-close" aria-label="Close" style="background:none;border:1px solid rgba(148,163,184,.25);cursor:pointer;color:#cbd5e1;font-size:1.05em; padding:8px 12px; border-radius:10px;">×</button>
           </div>
         </div>
-        <div class="ll-actions" style="display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-top:1px solid #374151; background:#111827;">
-          <button class="ll-btn" id="account-settings-cancel" style="background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 14px; border-radius:8px; font-weight:600;">Cancel</button>
-          <button class="ll-btn-primary" id="account-settings-save" style="background:#10b981; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-weight:700;">Save</button>
+        <div style="padding:18px; display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:start;">
+          <div id="account-details-section" style="grid-column: 1 / -1; display:grid; grid-template-columns:180px 1fr; row-gap:12px; column-gap:14px; background:rgba(15,23,42,.5); border:1px solid rgba(148,163,184,.14); border-radius:12px; padding:16px; min-height:280px;">
+            <div style="color:#94a3b8;">Username</div><div id="acc-username-value" style="font-weight:700; color:#fff;"></div>
+            <div style="color:#94a3b8;">First Name</div><div id="acc-firstname-value" style="color:#e5e7eb;"></div>
+            <div style="color:#94a3b8;">Last Name</div><div id="acc-lastname-value" style="color:#e5e7eb;"></div>
+            <div style="color:#94a3b8;">Email</div><div id="acc-email-value" style="color:#e5e7eb;"></div>
+          </div>
+          <div id="password-change-section" style="grid-column: 1 / -1; display:none; background:rgba(15,23,42,.5); border:1px solid rgba(148,163,184,.14); border-radius:12px; padding:16px; min-height:280px;">
+            <h4 style="margin:0 0 12px 0; font-size:1rem; color:#fff; font-weight:700;">Change Password</h4>
+            <div style="display:grid; grid-template-columns:180px 1fr; row-gap:12px; column-gap:14px; align-items:center;">
+              <div style="color:#94a3b8;">Current password</div>
+              <input id="acc-currpwd" type="password" placeholder="Current password" style="padding:12px 12px; border:1px solid rgba(148,163,184,.22); border-radius:10px; background:#0b1220; color:#e5e7eb;" />
+              <div style="color:#94a3b8;">New password</div>
+              <input id="acc-newpwd" type="password" placeholder="New password" autocomplete="new-password" style="padding:12px 12px; border:1px solid rgba(148,163,184,.22); border-radius:10px; background:#0b1220; color:#e5e7eb;" />
+              <div style="color:#94a3b8;">Confirm new password</div>
+              <input id="acc-newpwd2" type="password" placeholder="Confirm new password" autocomplete="new-password" style="padding:12px 12px; border:1px solid rgba(148,163,184,.22); border-radius:10px; background:#0b1220; color:#e5e7eb;" />
+            </div>
+            <div id="pw-hint" style="margin-top:6px; color:#94a3b8; font-size:.85em;">Use at least 8 characters. New passwords must match.</div>
+            <div id="pw-error" style="margin-top:6px; color:#fca5a5; font-size:.9em; display:none;">New passwords do not match.</div>
+            <div id="pw-success" style="margin-top:6px; color:#86efac; font-size:.9em; display:none;">Password updated successfully.</div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+              <button id="pw-cancel" style="background:#0b1220; color:#e5e7eb; border:1px solid rgba(148,163,184,.25); padding:10px 14px; border-radius:10px; font-weight:600;">Back</button>
+              <button id="pw-save" disabled style="opacity:.6; cursor:not-allowed; background:linear-gradient(135deg,#22c55e,#16a34a); color:#0b1220; border:none; padding:10px 16px; border-radius:10px; font-weight:800;">Update Password</button>
+            </div>
+          </div>
+          <div style="grid-column: 1 / -1; display:flex; justify-content:center; padding:4px 0 0 0;">
+            <button id="account-settings-cancel" style="background:#0b1220; color:#e5e7eb; border:1px solid rgba(148,163,184,.25); padding:10px 18px; border-radius:10px; font-weight:700; min-width:120px;">Close</button>
+          </div>
         </div>
       </div>
     </div>
