@@ -77,6 +77,442 @@
 
       /* Table hovers aligned to dark theme */
       .account-table tbody tr:hover, .activity-log-table tbody tr:hover { background: #292b32; color: #ffd7c2; }
+
+      /* Enhanced Search and Filter Section Styles */
+      .search-filter-section {
+        background: rgba(35,39,47,0.98);
+        border: 1.5px solid #23272f;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+      }
+
+      .search-filter-section:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        border-color: #ff7a18;
+      }
+
+      .search-filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #2a3138;
+      }
+
+      .search-filter-header .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: #ff7a18;
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .title-icon {
+        font-size: 1.2rem;
+      }
+
+      .filter-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .clear-filters-btn, .save-preset-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--fg);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .clear-filters-btn:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: #fff;
+      }
+
+      .save-preset-btn:hover {
+        background: #059669;
+        border-color: #059669;
+        color: #fff;
+      }
+
+      .search-filter-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* Enhanced Search Bar */
+      .search-container {
+        position: relative;
+        flex: 1;
+      }
+
+      .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      .search-input-wrapper:focus-within {
+        border-color: #ff7a18;
+        box-shadow: 0 0 0 3px rgba(255, 122, 24, 0.1);
+      }
+
+      .search-input {
+        flex: 1;
+        padding: 14px 50px 14px 16px;
+        border: none;
+        background: transparent;
+        font-size: 1rem;
+        color: #1f2937;
+        outline: none;
+      }
+
+      .search-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 16px;
+        font-size: 1.1rem;
+        color: #6b7280;
+        pointer-events: none;
+      }
+
+      .clear-search-btn {
+        position: absolute;
+        right: 40px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: #ef4444;
+        color: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .clear-search-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+      }
+
+      .clear-search-btn.show {
+        display: flex;
+      }
+
+      .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .suggestion-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s ease;
+      }
+
+      .suggestion-item:hover {
+        background: #f9fafb;
+      }
+
+      .suggestion-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Filter Controls */
+      .filter-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #e4e6eb;
+        margin-bottom: 4px;
+      }
+
+      .filter-select {
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: #1f2937;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-select:hover {
+        border-color: #f59e0b;
+      }
+
+      .filter-select:focus {
+        outline: none;
+        border-color: #ff7a18;
+        box-shadow: 0 0 0 3px rgba(255, 122, 24, 0.1);
+      }
+
+      /* Quick Filter Chips */
+      .quick-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px 0;
+        border-top: 1px solid #2a3138;
+        border-bottom: 1px solid #2a3138;
+      }
+
+      .quick-filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #e4e6eb;
+        margin-right: 8px;
+      }
+
+      .quick-filter-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--fg);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .quick-filter-chip:hover {
+        background: #ff7a18;
+        border-color: #ff7a18;
+        color: #fff;
+        transform: translateY(-1px);
+      }
+
+      .quick-filter-chip.active {
+        background: #ff7a18;
+        border-color: #ff7a18;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(255, 122, 24, 0.3);
+      }
+
+      .chip-icon {
+        font-size: 0.9rem;
+      }
+
+      /* Advanced Filters */
+      .advanced-filters-toggle {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+      }
+
+      .toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--fg);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .toggle-btn:hover {
+        background: #ff7a18;
+        border-color: #ff7a18;
+        color: #fff;
+      }
+
+      .toggle-arrow {
+        transition: transform 0.2s ease;
+      }
+
+      .toggle-btn.active .toggle-arrow {
+        transform: rotate(180deg);
+      }
+
+      .advanced-filters-panel {
+        background: rgba(30, 32, 36, 0.5);
+        border: 1px solid #2a3138;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 16px;
+        animation: slideDown 0.3s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .advanced-filters-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .date-range-inputs {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .date-input {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: #1f2937;
+        font-size: 0.9rem;
+      }
+
+      .date-separator {
+        color: #9ca3af;
+        font-weight: 500;
+      }
+
+      .bulk-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .bulk-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--fg);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .bulk-action-btn:hover {
+        background: #ff7a18;
+        border-color: #ff7a18;
+        color: #fff;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .search-filter-header {
+          flex-direction: column;
+          gap: 12px;
+          align-items: stretch;
+        }
+
+        .filter-actions {
+          justify-content: center;
+        }
+
+        .filter-container {
+          grid-template-columns: 1fr;
+        }
+
+        .quick-filters {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .filter-row {
+          grid-template-columns: 1fr;
+        }
+
+        .bulk-actions {
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .search-filter-section {
+          padding: 16px;
+        }
+
+        .search-input-wrapper {
+          border-radius: 8px;
+        }
+
+        .search-input {
+          padding: 12px 40px 12px 12px;
+          font-size: 0.9rem;
+        }
+
+        .quick-filter-chip {
+          font-size: 0.8rem;
+          padding: 4px 8px;
+        }
+      }
       
       /* Logout Confirmation Modal */
       .logout-modal {
@@ -247,58 +683,36 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="user-stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon active-users">👤</div>
-                <div class="stat-content">
-                    <div class="stat-value" id="active-users-count">0</div>
-                    <div class="stat-label">Active Users</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon total-users">👥</div>
-                <div class="stat-content">
-                    <div class="stat-value" id="total-users-count">0</div>
-                    <div class="stat-label">Total Users</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon technician-users">🔧</div>
-                <div class="stat-content">
-                    <div class="stat-value" id="technician-users-count">0</div>
-                    <div class="stat-label">Technicians</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon office-users">🏢</div>
-                <div class="stat-content">
-                    <div class="stat-value" id="office-users-count">0</div>
-                    <div class="stat-label">Office Users</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Search and Filter Section -->
+        <!-- Enhanced Search Section -->
         <div class="search-filter-section">
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input type="text" id="user-search" class="search-input" placeholder="Search users by name or email...">
-                    <span class="search-icon">🔍</span>
+            <div class="search-filter-header">
+                <h3 class="section-title">
+                    <span class="title-icon">🔍</span>
+                    Search Users
+                </h3>
+                <div class="filter-actions">
+                    <button id="clear-all-filters" class="clear-filters-btn" title="Clear search">
+                        <span class="btn-icon">🗑️</span>
+                        Clear
+                    </button>
                 </div>
             </div>
-            <div class="filter-container">
-                <select id="role-filter" class="filter-select">
-                    <option value="">All Roles</option>
-                    <option value="technician">Technician</option>
-                    <option value="office">Office</option>
-                </select>
-                <select id="status-filter" class="filter-select">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                </select>
+            
+            <div class="search-filter-content">
+                <!-- Main Search Bar -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="user-search" class="search-input" placeholder="Search users by name, email, or role...">
+                        <button id="clear-search" class="clear-search-btn" title="Clear search">
+                            <span class="clear-icon">✕</span>
+                        </button>
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div class="search-suggestions" id="search-suggestions" style="display: none;">
+                        <!-- Search suggestions will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -626,18 +1040,8 @@
     }
 
     function updateUserStats() {
-        const stats = {
-            active: currentUsers.filter(u => u.status === 'active').length,
-            total: currentUsers.length,
-            technician: currentUsers.filter(u => u.role === 'technician').length,
-            office: currentUsers.filter(u => u.role === 'office').length
-        };
-
-        document.getElementById('active-users-count').textContent = stats.active;
-        document.getElementById('total-users-count').textContent = stats.total;
-        document.getElementById('technician-users-count').textContent = stats.technician;
-        const offEl = document.getElementById('office-users-count');
-        if (offEl) offEl.textContent = stats.office;
+        // Stats cards removed - no longer updating stat displays
+        return;
     }
 
     function renderUsersTable() {
@@ -698,14 +1102,35 @@
     }
 
     function setupEventListeners() {
-        // Search functionality
+        // Enhanced search functionality
         const searchInput = document.getElementById('user-search');
-        const roleFilter = document.getElementById('role-filter');
-        const statusFilter = document.getElementById('status-filter');
+        const clearSearchBtn = document.getElementById('clear-search');
 
-        searchInput.addEventListener('input', filterUsers);
-        roleFilter.addEventListener('change', filterUsers);
-        statusFilter.addEventListener('change', filterUsers);
+        // Search with suggestions
+        searchInput.addEventListener('input', function() {
+            const value = this.value;
+            if (value.length > 0) {
+                clearSearchBtn.classList.add('show');
+                showSearchSuggestions(value);
+            } else {
+                clearSearchBtn.classList.remove('show');
+                hideSearchSuggestions();
+            }
+            filterUsers();
+        });
+
+        // Clear search functionality
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            this.classList.remove('show');
+            hideSearchSuggestions();
+            filterUsers();
+        });
+
+        // Clear all filters
+        document.getElementById('clear-all-filters').addEventListener('click', function() {
+            clearAllFilters();
+        });
 
         // Refresh button
         document.getElementById('refresh-users').addEventListener('click', refreshUsers);
@@ -737,27 +1162,70 @@
                 closeEditModal();
             }
         });
+
+        // Close search suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                hideSearchSuggestions();
+            }
+        });
     }
 
     function filterUsers() {
         const searchTerm = document.getElementById('user-search').value.toLowerCase();
-        const roleFilter = document.getElementById('role-filter').value;
-        const statusFilter = document.getElementById('status-filter').value;
 
         currentUsers = sampleUsers.filter(user => {
             const matchesSearch = !searchTerm || 
                 user.name.toLowerCase().includes(searchTerm) ||
-                user.email.toLowerCase().includes(searchTerm);
-            
-            const matchesRole = !roleFilter || user.role === roleFilter;
-            const matchesStatus = !statusFilter || user.status === statusFilter;
+                user.email.toLowerCase().includes(searchTerm) ||
+                user.role.toLowerCase().includes(searchTerm);
 
-            return matchesSearch && matchesRole && matchesStatus;
+            return matchesSearch;
         });
 
-        updateUserStats();
         renderUsersTable();
     }
+
+
+    function showSearchSuggestions(query) {
+        const suggestions = document.getElementById('search-suggestions');
+        const filteredUsers = sampleUsers.filter(user => 
+            user.name.toLowerCase().includes(query.toLowerCase()) ||
+            user.email.toLowerCase().includes(query.toLowerCase()) ||
+            user.role.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 5);
+
+        if (filteredUsers.length > 0) {
+            suggestions.innerHTML = filteredUsers.map(user => `
+                <div class="suggestion-item" onclick="selectSuggestion('${user.name}')">
+                    <strong>${user.name}</strong>
+                    <span style="color: #6b7280; font-size: 0.85rem;">${user.email}</span>
+                </div>
+            `).join('');
+            suggestions.style.display = 'block';
+        } else {
+            suggestions.style.display = 'none';
+        }
+    }
+
+    function hideSearchSuggestions() {
+        document.getElementById('search-suggestions').style.display = 'none';
+    }
+
+    function selectSuggestion(name) {
+        document.getElementById('user-search').value = name;
+        hideSearchSuggestions();
+        filterUsers();
+    }
+
+
+    function clearAllFilters() {
+        document.getElementById('user-search').value = '';
+        document.getElementById('clear-search').classList.remove('show');
+        hideSearchSuggestions();
+        filterUsers();
+    }
+
 
     function sortTable(field) {
         if (currentSort.field === field) {
@@ -802,7 +1270,6 @@
         const loadingOverlay = document.getElementById('users-loading');
         loadingOverlay.style.display = 'flex';
         await fetchUsersFromDB();
-        updateUserStats();
         renderUsersTable();
         loadingOverlay.style.display = 'none';
     }
@@ -935,6 +1402,8 @@
     window.toggleUserStatus = toggleUserStatus;
     window.deleteUser = deleteUser;
     window.filterUsers = filterUsers;
+    window.selectSuggestion = selectSuggestion;
+    window.clearAllFilters = clearAllFilters;
     </script>
 
     <!-- Supabase and shared logic -->
