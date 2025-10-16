@@ -84,23 +84,9 @@
                 return;
             }
 
-            // Admin backdoor: access admin panel with admin/admin
-            if (identifier.toLowerCase() === 'admin' && password === 'admin') {
-                try {
-                  localStorage.setItem('ll_current_user', JSON.stringify({
-                    user_id: -1,
-                    username: 'admin',
-                    user_email: 'admin@local',
-                    user_firstname: 'Admin',
-                    user_lastname: 'User',
-                    role: 'admin',
-                    active: true
-                  }));
-                } catch {}
-                try { sessionStorage.setItem('ll_session', JSON.stringify({ user_id: -1, ts: Date.now() })); } catch {}
-                window.location.href = 'admin.html#profile';
-                return;
-            }
+            // Clear any existing spoofed session before attempting login
+            try { localStorage.removeItem('ll_current_user'); } catch {}
+            try { sessionStorage.removeItem('ll_session'); } catch {}
 
             submitBtn.disabled = true;
             submitBtn.classList.add('loading');
@@ -113,7 +99,7 @@
                     .single();
 
                 if (error || !user) {
-                    throw new Error('Invalid credentials.');
+                    throw new Error('Invalid account. Please sign up first.');
                 }
                 if (user.active === false) {
                     throw new Error('Your account is deactivated.');
@@ -134,8 +120,27 @@
                 })); } catch {}
 
                 const role = String(user.role || '').toLowerCase();
-                // establish in-memory session (tab/window scoped)
-                try { sessionStorage.setItem('ll_session', JSON.stringify({ user_id: user.user_id, ts: Date.now() })); } catch {}
+                // establish in-memory session (tab/window scoped) with random token
+                try {
+                  if (window.llCreateSession) {
+                    window.llCreateSession(user.user_id);
+                  } else {
+                    // Fallback: create session locally when helper is unavailable on the login page
+                    (function(){
+                      function genToken(){
+                        try {
+                          var b = new Uint8Array(16);
+                          (window.crypto || window.msCrypto).getRandomValues(b);
+                          var s = '';
+                          for (var i=0;i<b.length;i++){ s += b[i].toString(16).padStart(2,'0'); }
+                          return s;
+                        } catch { return String(Math.random()).slice(2) + String(Date.now()); }
+                      }
+                      var sess = { user_id: user.user_id, token: genToken(), ts: Date.now() };
+                      sessionStorage.setItem('ll_session', JSON.stringify(sess));
+                    })();
+                  }
+                } catch {}
                 if (role === 'office') {
                     showDarSplash('home.html#map');
                     return;
@@ -153,6 +158,7 @@
 
                 throw new Error('This portal is for office accounts only.');
             } catch (e) {
+                try { if (window.llClearSession) window.llClearSession(); } catch {}
                 errorEl.textContent = e?.message || 'Login failed. Please try again.';
                 errorEl.hidden = false;
                 errorEl.focus?.();

@@ -49,8 +49,11 @@ function isLoggedIn() {
     const user = JSON.parse(raw);
     if (!user) return false;
     // require a live session token (tab/window scoped)
-    const sess = sessionStorage.getItem('ll_session');
-    if (!sess) return false;
+    const sessRaw = sessionStorage.getItem('ll_session');
+    if (!sessRaw) return false;
+    const sess = JSON.parse(sessRaw);
+    if (!sess || !sess.user_id) return false;
+    if (!sess.token || typeof sess.token !== 'string' || sess.token.length < 16) return false;
     // must have role and not explicitly inactive
     return typeof user.role === 'string' && user.active !== false;
   } catch { return false; }
@@ -136,6 +139,29 @@ window.llLogout = function() {
   try { localStorage.removeItem('ll_current_user'); } catch {}
   try { sessionStorage.removeItem('ll_session'); } catch {}
   hardRedirectToLogin();
+};
+
+// Session utilities
+function generateSessionToken() {
+  try {
+    const bytes = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch {
+    return String(Math.random()).slice(2) + String(Date.now());
+  }
+}
+
+window.llCreateSession = function(userId) {
+  try {
+    const token = generateSessionToken();
+    const sess = { user_id: userId, token, ts: Date.now() };
+    sessionStorage.setItem('ll_session', JSON.stringify(sess));
+  } catch {}
+};
+
+window.llClearSession = function() {
+  try { sessionStorage.removeItem('ll_session'); } catch {}
 };
 
 
@@ -4180,9 +4206,37 @@ function showAssignTaskModal(area) {
 
     const notes = document.getElementById('task-notes').value || null;
 
-    const payload = { land_area_id: area.id, assigned_to: assigneeId, status: 'assigned', due_date: dueDate, priority, notes };
+    // Prefer RPC with SECURITY DEFINER to satisfy RLS
+    // Resolve UUID land_area_id. If area.id isn't a UUID, try to look it up by lhid.
+    let landAreaIdText = String(area.id ?? '').trim();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(landAreaIdText)) {
+      try {
+        const lhidVal = (area && area.lhid) ? String(area.lhid).trim() : '';
+        if (lhidVal) {
+          const { data: laByLhid, error: laErr } = await supabase
+            .from('land_areas')
+            .select('id')
+            .eq('lhid', lhidVal)
+            .maybeSingle();
+          if (!laErr && laByLhid && laByLhid.id && uuidRegex.test(String(laByLhid.id))) {
+            landAreaIdText = String(laByLhid.id);
+          }
+        }
+      } catch {}
+    }
+    if (!uuidRegex.test(landAreaIdText)) {
+      alert('Failed to assign task: could not resolve land area UUID for this record.');
+      return;
+    }
 
-    const { error } = await supabase.from('tasks').insert([payload]);
+    const { error } = await supabase.rpc('assign_task_universal', {
+      p_land_area_id_text: landAreaIdText,
+      p_assigned_to: assigneeId,
+      p_due_date: dueDate,
+      p_priority: priority,
+      p_notes: notes
+    });
 
     if (error) { alert('Failed to assign task: ' + error.message); return; }
 
