@@ -255,7 +255,186 @@
             .tag.workable { background:#123c2a; color:#a7f3d0; border:1px solid #0ea36a; }
             .tag.problematic { background:#452325; color:#fecaca; border:1px solid #e11d48; }
             @media (max-width: 900px) { .reports-grid { grid-template-columns: 1fr; } }
+            
+            /* Print Button Styles */
+            .print-actions {
+              display: flex;
+              gap: 10px;
+              margin-bottom: 20px;
+              flex-wrap: wrap;
+            }
+            .print-btn, .download-pdf-btn {
+              background: #10b981;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              padding: 10px 20px;
+              font-weight: 600;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              transition: all 0.2s ease;
+            }
+            .print-btn:hover, .download-pdf-btn:hover {
+              background: #059669;
+              transform: translateY(-1px);
+            }
+            .print-btn svg, .download-pdf-btn svg {
+              width: 18px;
+              height: 18px;
+            }
+            
+            /* Print Header - Hidden by default, shown only when printing */
+            .print-header {
+              display: none;
+            }
+            
+            /* Print Styles */
+            @media print {
+              /* Hide elements that shouldn't be printed */
+              #reports-back-btn,
+              .print-actions,
+              #map,
+              #add-bearing-btn,
+              #open-reports-btn,
+              #global-settings-btn,
+              #landholdings-toggle-btn,
+              #landarea-panel,
+              #global-settings-menu {
+                display: none !important;
+              }
+              
+              /* Show print header */
+              .print-header {
+                display: block !important;
+                page-break-after: always;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #000;
+              }
+              
+              .print-header-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+              }
+              
+              .print-header-logo {
+                width: 80px;
+                height: 80px;
+              }
+              
+              .print-header-info {
+                flex: 1;
+                margin-left: 20px;
+              }
+              
+              .print-header-title {
+                font-size: 24px;
+                font-weight: bold;
+                color: #000;
+                margin: 0;
+              }
+              
+              .print-header-subtitle {
+                font-size: 14px;
+                color: #666;
+                margin: 5px 0 0 0;
+              }
+              
+              .print-date {
+                text-align: right;
+                font-size: 12px;
+                color: #666;
+              }
+              
+              /* Adjust page layout for printing */
+              body {
+                margin: 0;
+                padding: 20px;
+              }
+              
+              #home {
+                display: block !important;
+              }
+              
+              .reports-kpis,
+              .reports-grid,
+              .panel {
+                background: white !important;
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                box-shadow: none !important;
+              }
+              
+              .kpi-card {
+                background: white !important;
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                box-shadow: none !important;
+              }
+              
+              .kpi-label {
+                color: #000 !important;
+              }
+              
+              .kpi-value {
+                color: #000 !important;
+              }
+              
+              .panel-header {
+                color: #000 !important;
+              }
+              
+              .panel thead th {
+                background: #000 !important;
+                color: #fff !important;
+              }
+              
+              .panel tbody tr {
+                border-bottom: 1px solid #000 !important;
+              }
+              
+              /* Prevent page breaks inside important elements */
+              .panel {
+                page-break-inside: avoid;
+              }
+              
+              .reports-kpis {
+                page-break-inside: avoid;
+              }
+            }
           </style>
+          
+          <!-- Print Header (visible only when printing) -->
+          <div class="print-header">
+            <div class="print-header-content">
+              <img src="dar_logo.png" alt="DAR Logo" class="print-header-logo">
+              <div class="print-header-info">
+                <h1 class="print-header-title">Department of Agrarian Reform (DAR)</h1>
+                <p class="print-header-subtitle">Manolo Fortich - Landholding Reports</p>
+              </div>
+              <div class="print-date" id="print-date"></div>
+            </div>
+          </div>
+          
+          <!-- Print Actions -->
+          <div class="print-actions">
+            <button class="print-btn" onclick="printReport()">
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+              </svg>
+              Print Report
+            </button>
+            <button class="download-pdf-btn" onclick="downloadPDF()">
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+              </svg>
+              Download PDF
+            </button>
+          </div>
           <button id="reports-back-btn" aria-label="Back to map" title="Back to map" onclick="navigateTo('map')" style="
             background:#23272f; color:#ffd600; border:1.5px solid #ffd600; border-radius:8px; padding:6px 12px; font-weight:600; cursor:pointer; margin: 0 0 10px 0; display:inline-flex; align-items:center; gap:8px;">
             <span style="font-size:1.1em; line-height:1">&#8592;</span>
@@ -351,6 +530,47 @@
                 loadReports();
               }
             })();
+            
+            // Print and PDF Download Functions
+            window.printReport = function() {
+              // Update print date
+              const dateEl = document.getElementById('print-date');
+              if (dateEl) {
+                dateEl.textContent = 'Generated: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+              }
+              
+              // Trigger print dialog
+              window.print();
+            };
+            
+            window.downloadPDF = function() {
+              // Update print date
+              const dateEl = document.getElementById('print-date');
+              if (dateEl) {
+                dateEl.textContent = 'Generated: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+              }
+              
+              // For PDF download, we'll use the browser's print-to-PDF feature
+              // This will trigger the print dialog where user can select "Save as PDF"
+              
+              // Temporarily store the original print function
+              const originalPrint = window.print;
+              
+              // Override the print function to suggest PDF
+              window.print = function() {
+                // Reset to original
+                window.print = originalPrint;
+                
+                // Trigger the print dialog
+                originalPrint.call(window);
+              };
+              
+              // Show a brief message
+              alert('Please select "Save as PDF" from the printer options to download.');
+              
+              // Trigger print dialog
+              window.print();
+            };
           </script>
         </section>
         <!-- ===== End Reports ===== -->
@@ -379,7 +599,7 @@
             <div class="bearings-modal-header">
               <div class="header-content">
                 <h3 id="modal-title">Add Land Holding</h3>
-                <p id="modal-subtitle" class="header-subtitle">Step 1 of 3: Land Owner Information</p>
+                <p id="modal-subtitle" class="header-subtitle">Step 1 of 4: Land Owner Information</p>
               </div>
               <button id="close-bearings-modal" class="close-modal-btn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -398,11 +618,16 @@
               <div class="progress-line"></div>
               <div class="progress-step" data-step="2">
                 <div class="step-number">2</div>
-                <span class="step-label">Starting Point</span>
+                <span class="step-label">Reference System</span>
               </div>
               <div class="progress-line"></div>
               <div class="progress-step" data-step="3">
                 <div class="step-number">3</div>
+                <span class="step-label">Starting Point</span>
+              </div>
+              <div class="progress-line"></div>
+              <div class="progress-step" data-step="4">
+                <div class="step-number">4</div>
                 <span class="step-label">Survey Points</span>
               </div>
             </div>
@@ -423,8 +648,61 @@
                 </div>
               </div>
 
-              <!-- Step 2: Starting Point Coordinates -->
+              <!-- Step 2: Reference System Selection -->
               <div id="step-2" class="modal-step">
+                <div class="step-content">
+                  <div class="step-header">
+                    <h4>Reference System Selection</h4>
+                    <p>Select the coordinate reference system for computation</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="reference-system-select">Reference System <span class="required">*</span></label>
+                    <select id="reference-system-select" class="ll-input" style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d4d4d4; font-size: 1.05em;" required>
+                      <option value="">Select a reference system</option>
+                      <option value="cad867" 
+                              data-cn="30.720" data-ce="30.595"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="16.20"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="46.971">
+                        BLLM 1, CAD 867 (Cn: 30.720, Ce: 30.595)
+                      </option>
+                      <option value="gss549" 
+                              data-cn="30.720" data-ce="30.595"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="16.20"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="46.971">
+                        BLLM 1, GSS 549 (Cn: 30.720, Ce: 30.595)
+                      </option>
+                      <option value="pls854" 
+                              data-cn="30.713" data-ce="30.588"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="15.84"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="45.55">
+                        BLLM 1, PLS 854 (Cn: 30.713, Ce: 30.588)
+                      </option>
+                      <option value="prs92" 
+                              data-cn="30.713" data-ce="30.588"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="15.84"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="45.55">
+                        BLLM 1, PRS 92 (Cn: 30.713, Ce: 30.588)
+                      </option>
+                      <option value="cad672" 
+                              data-cn="30.726" data-ce="30.602"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="17.10"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="47.32">
+                        BLLM 1, CAD 672 (Cn: 30.726, Ce: 30.602)
+                      </option>
+                      <option value="cad681" 
+                              data-cn="30.728" data-ce="30.610"
+                              data-tie-lat-deg="8" data-tie-lat-min="22" data-tie-lat-sec="18.55"
+                              data-tie-lon-deg="124" data-tie-lon-min="51" data-tie-lon-sec="48.01">
+                        BLLM 1, CAD 681 (Cn: 30.728, Ce: 30.610)
+                      </option>
+                    </select>
+                    <div class="input-help">The system will use the selected constants for coordinate computation</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Starting Point Coordinates -->
+              <div id="step-3" class="modal-step">
                 <div class="step-content">
                   <div class="step-header">
                     <h4>Starting Point Coordinates</h4>
@@ -445,8 +723,8 @@
                 </div>
               </div>
 
-              <!-- Step 3: Survey Points Collection -->
-              <div id="step-3" class="modal-step">
+              <!-- Step 4: Survey Points Collection -->
+              <div id="step-4" class="modal-step">
                 <div class="step-content">
                   <div class="step-header">
                     <h4>Survey Points</h4>
