@@ -2311,36 +2311,38 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 
 
 
-// Transform survey coordinates to lat/lng using BLUM 1 GSS 549 formula
+// Transform survey coordinates to lat/lng using selected reference system formula
 function transformSurveyToLatLng(easting, northing) {
 
-  // ===== BLUM 1 GSS 549 CONFIG ===== //
+  // ===== CONFIGURABLE REFERENCE SYSTEM ===== //
   const TPN = 20000.000;   // Tie Point Northing
   const TPL = 20000.000;   // Tie Point Easting
 
-  // Tie Point Latitude & Longitude in DMS, then converted to decimal
-  // Latitude: 8°22'16.20" N = 8 + 22/60 + 16.20/3600 = 8.3711666667
-  // Longitude: 124°51'46.97" E = 124 + 51/60 + 46.97/3600 = 124.8630472222
-  const tieLat = 8 + 22/60 + 16.20/3600;    // 8.3711666667
-  const tieLon = 124 + 51/60 + 46.97/3600;  // 124.8630472222
+  // Use selected reference system constants and tie point
+  const CONST_N = selectedReferenceSystem.cn || 30.720;  // For latitude
+  const CONST_E = selectedReferenceSystem.ce || 30.595;  // For longitude
+  
+  // Use tie point from selected reference system
+  const tieLatDeg = selectedReferenceSystem.tieLatDeg || 8;
+  const tieLatMin = selectedReferenceSystem.tieLatMin || 22;
+  const tieLatSec = selectedReferenceSystem.tieLatSec || 16.20;
+  const tieLonDeg = selectedReferenceSystem.tieLonDeg || 124;
+  const tieLonMin = selectedReferenceSystem.tieLonMin || 51;
+  const tieLonSec = selectedReferenceSystem.tieLonSec || 46.97;
 
-  // Constants from BLUM 1 GSS 549
-  const CONST_N = 30.720;  // For latitude
-  const CONST_E = 30.595;  // For longitude
-
-  // ===== BLUM 1 GSS 549 CONVERSION ===== //
-  // Step 1: Calculate differences (P1N - TPN, P1E - TPL)  
-  const deltaN = northing - TPN;  // P1N - TPN
-  const deltaE = easting - TPL;   // P1E - TPL
+  // ===== COORDINATE CONVERSION FORMULA ===== //
+  // Step 1: Calculate differences (TPN - P1N, TPL - P1E)  
+  const deltaN = TPN - northing;  // TPN - P1N
+  const deltaE = TPL - easting;   // TPL - P1E
 
   // Step 2: Convert to arc-seconds using constants
-  const secLat = deltaN / CONST_N;    // Δns ÷ constant N
-  const secLon = deltaE / CONST_E;    // Δns ÷ constant E
+  const secLat = deltaN / CONST_N;    // ΔN ÷ constant N
+  const secLon = deltaE / CONST_E;    // ΔE ÷ constant E
 
   // Step 3: Add arc-seconds to tie point coordinates (DMS arithmetic)
-  // Tie point DMS components
-  let latDeg = 8, latMin = 22, latSec = 16.20;
-  let lonDeg = 124, lonMin = 51, lonSec = 46.97;
+  // Tie point DMS components from selected reference system
+  let latDeg = tieLatDeg, latMin = tieLatMin, latSec = tieLatSec;
+  let lonDeg = tieLonDeg, lonMin = tieLonMin, lonSec = tieLonSec;
 
   // Add the calculated seconds to the DMS components
   latSec += secLat;
@@ -4802,8 +4804,20 @@ async function renderMapRecordsReport() {
 
 // Multi-step modal state
 let currentStep = 1;
-let totalSteps = 3;
+let totalSteps = 4;
 let collectedPoints = [];
+// Store selected reference system constants and tie point
+let selectedReferenceSystem = {
+  name: 'cad867',
+  cn: 30.720,
+  ce: 30.595,
+  tieLatDeg: 8,
+  tieLatMin: 22,
+  tieLatSec: 16.20,
+  tieLonDeg: 124,
+  tieLonMin: 51,
+  tieLonSec: 46.971
+};
 
 // Override the original showBearingsModal function
 function showBearingsModalMultiStep() {
@@ -4822,9 +4836,30 @@ function resetModalToStep1() {
   const loInput = document.getElementById('lo-name-input');
   if (loInput) loInput.value = '';
   
-  document.getElementById('starting-easting').value = '20000.000';
-  document.getElementById('starting-northing').value = '20000.000';
-  document.getElementById('points-count').value = '';
+  // Reset reference system
+  const refSystemSelect = document.getElementById('reference-system-select');
+  if (refSystemSelect) refSystemSelect.value = '';
+  
+  // Reset to default reference system
+  selectedReferenceSystem = {
+    name: 'cad867',
+    cn: 30.720,
+    ce: 30.595,
+    tieLatDeg: 8,
+    tieLatMin: 22,
+    tieLatSec: 16.20,
+    tieLonDeg: 124,
+    tieLonMin: 51,
+    tieLonSec: 46.971
+  };
+  
+  const eastInput = document.getElementById('starting-easting');
+  const northInput = document.getElementById('starting-northing');
+  if (eastInput) eastInput.value = '20000.000';
+  if (northInput) northInput.value = '20000.000';
+  
+  const pointsCount = document.getElementById('points-count');
+  if (pointsCount) pointsCount.value = '';
   
   // Reset dynamic inputs
   const dynamicContainer = document.getElementById('dynamic-points-inputs');
@@ -4856,9 +4891,10 @@ function showStep(stepNumber) {
   
   // Update title and subtitle
   const titles = {
-    1: { title: 'Add Land Holding', subtitle: 'Step 1 of 3: Land Owner Information' },
-    2: { title: 'Add Land Holding', subtitle: 'Step 2 of 3: Starting Point Coordinates' },
-    3: { title: 'Add Land Holding', subtitle: 'Step 3 of 3: Survey Points Collection' }
+    1: { title: 'Add Land Holding', subtitle: 'Step 1 of 4: Land Owner Information' },
+    2: { title: 'Add Land Holding', subtitle: 'Step 2 of 4: Reference System Selection' },
+    3: { title: 'Add Land Holding', subtitle: 'Step 3 of 4: Starting Point Coordinates' },
+    4: { title: 'Add Land Holding', subtitle: 'Step 4 of 4: Survey Points Collection' }
   };
   
   const modalTitle = document.getElementById('modal-title');
@@ -4915,11 +4951,31 @@ function validateCurrentStep() {
       isValid = loName.length > 0;
       break;
     case 2:
+      const refSystem = document.getElementById('reference-system-select')?.value || '';
+      isValid = refSystem.length > 0;
+      // Store selected reference system constants and tie point
+      if (isValid) {
+        const selectEl = document.getElementById('reference-system-select');
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        selectedReferenceSystem = {
+          name: refSystem,
+          cn: parseFloat(selectedOption.dataset.cn),
+          ce: parseFloat(selectedOption.dataset.ce),
+          tieLatDeg: parseFloat(selectedOption.dataset.tieLatDeg),
+          tieLatMin: parseFloat(selectedOption.dataset.tieLatMin),
+          tieLatSec: parseFloat(selectedOption.dataset.tieLatSec),
+          tieLonDeg: parseFloat(selectedOption.dataset.tieLonDeg),
+          tieLonMin: parseFloat(selectedOption.dataset.tieLonMin),
+          tieLonSec: parseFloat(selectedOption.dataset.tieLonSec)
+        };
+      }
+      break;
+    case 3:
       const easting = document.getElementById('starting-easting')?.value?.trim() || '';
       const northing = document.getElementById('starting-northing')?.value?.trim() || '';
       isValid = easting.length > 0 && northing.length > 0 && !isNaN(parseFloat(easting)) && !isNaN(parseFloat(northing));
       break;
-    case 3:
+    case 4:
       isValid = collectedPoints.length >= 3;
       break;
   }
@@ -5101,6 +5157,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const loNameInput = document.getElementById('lo-name-input');
   if (loNameInput) {
     loNameInput.addEventListener('input', validateCurrentStep);
+  }
+  
+  const refSystemSelect = document.getElementById('reference-system-select');
+  if (refSystemSelect) {
+    refSystemSelect.addEventListener('change', validateCurrentStep);
   }
   
   const eastingInput = document.getElementById('starting-easting');
